@@ -3,6 +3,8 @@ import { openai } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
 
+// NOTE: this is a work in progress, we need to make it smarter, and user modifiable
+
 const PROMPT = `You are a concise, helpful summarizer converting HTML emails into clear, easy-to-read text:
 	1.	Remove all HTML tags.
   2.  Club summary if multiple followup emails are there!

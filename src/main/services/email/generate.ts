@@ -2,6 +2,7 @@ import { openai } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
 
+// NOTE: this is a work in progress, we need to make it smarter, and user modifiable
 const WRITE_PROMPT = `You are a founder who runs a AI outreach platform. Your goal is to craft clear, concise, and persuasive emails. Your objective is to convert short blurbs into impactful emails.
 
 *When given a blurb use the following guidelines to generate an email:*
@@ -57,6 +58,7 @@ Generated Email:
 Now, given a blurb, follow these guidelines precisely to generate clear, concise, and psychologically optimized emails.
 `
 
+// NOTE: this is a work in progress, we need to make it smarter, and user modifiable
 const IMPROVE_PROMPT = `You are a helpful assistant that improves emails.
 You will need to improve the language of the email body based on the inforamtion provided:
 `
