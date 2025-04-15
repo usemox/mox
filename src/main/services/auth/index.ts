@@ -26,6 +26,9 @@ class AuthService extends EventEmitter {
   constructor() {
     super()
     // Initialize OAuth2 client
+    // NOTE: We must not package these, use a proxy server to initiate login
+    // It's fine for dev, but not for prod
+
     this.oauth2Client = new google.auth.OAuth2(
       OAUTH_CONFIG.clientId,
       OAUTH_CONFIG.clientSecret,
