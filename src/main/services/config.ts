@@ -91,5 +91,9 @@ export const IPC_CHANNELS = {
   ACTION_ITEMS: {
     FETCH_BY_EMAIL_ID: 'action-items:fetch:by-email-id',
     MARK_AS_COMPLETED: 'action-items:mark:completed'
+  },
+  SETTINGS: {
+    GET_CREDENTIALS: 'settings:get:credentials',
+    SET_CREDENTIAL: 'settings:set:credential'
   }
 }

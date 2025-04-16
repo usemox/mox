@@ -19,7 +19,7 @@ import { Separator } from '@renderer/components/ui/separator'
 import { UserIcon, SearchIcon, FileIcon, MagicIcon, LoadingIcon } from '@renderer/components/icons'
 import { useSyncEvent } from '@renderer/hooks/use-events'
 import logo from '@renderer/assets/logo-dark.png'
-
+import { Settings } from '@renderer/components/inbox/settings'
 export const MainNav = observer(function CategoriesNav({
   profile
 }: {
@@ -29,8 +29,9 @@ export const MainNav = observer(function CategoriesNav({
 
   return (
     <div className="flex flex-col gap-4 justify-between items-end z-50">
-      <div className="m-2">
+      <div className="m-2 flex gap-1">
         <SyncStatus />
+        <Settings />
       </div>
       <div className="flex px-4 w-full items-center justify-between">
         <img src={logo} alt="logo" className="w-10 h-10" />

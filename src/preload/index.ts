@@ -7,6 +7,7 @@ import type { ActionItem } from '@/types/action-item'
 import type { Contact } from '@/types/people'
 import { MessageType } from '@/types/messages'
 import { AppMessage } from '@/types/messages'
+import type { Credential } from '@/types/settings'
 
 export interface ElectronApi {
   auth: {
@@ -72,6 +73,10 @@ export interface ElectronApi {
   }
   people: {
     search: (query: string) => Promise<{ success: boolean; error?: string; data?: Contact[] }>
+  }
+  settings: {
+    getCredentials: () => Promise<{ success: boolean; error?: string; data?: Credential[] }>
+    setCredential: (id: string, secret: string) => Promise<{ success: boolean; error?: string }>
   }
 }
 
@@ -196,6 +201,11 @@ const api: ElectronApi = {
   },
   people: {
     search: (query: string) => ipcRenderer.invoke(IPC_CHANNELS.PEOPLE.SEARCH, query)
+  },
+  settings: {
+    getCredentials: () => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.GET_CREDENTIALS),
+    setCredential: (id: string, secret: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.SET_CREDENTIAL, id, secret)
   }
 }
 
