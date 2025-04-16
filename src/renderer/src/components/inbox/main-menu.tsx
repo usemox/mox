@@ -1,7 +1,6 @@
 import type { JSX } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from '@tanstack/react-router'
-import { motion, AnimatePresence } from 'framer-motion'
 import { NewEmail } from '@renderer/components/inbox/new-mail'
 import { Profile } from '@/types/email'
 
@@ -16,10 +15,12 @@ import {
   MenubarTrigger
 } from '@renderer/components/ui/menubar'
 import { Separator } from '@renderer/components/ui/separator'
-import { UserIcon, SearchIcon, FileIcon, MagicIcon, LoadingIcon } from '@renderer/components/icons'
+import { UserIcon, SearchIcon, FileIcon, MagicIcon } from '@renderer/components/icons'
 import { useSyncEvent } from '@renderer/hooks/use-events'
 import logo from '@renderer/assets/logo-dark.png'
 import { Settings } from '@renderer/components/inbox/settings'
+import { SyncBadge } from '@renderer/components/sync-badge'
+
 export const MainNav = observer(function CategoriesNav({
   profile
 }: {
@@ -120,24 +121,5 @@ export const MainNav = observer(function CategoriesNav({
 
 export const SyncStatus = (): JSX.Element => {
   const { isSyncing } = useSyncEvent()
-
-  return (
-    <div className="text-xs px-2 py-1 rounded-md bg-gray-400/10">
-      <AnimatePresence>
-        {isSyncing ? (
-          <motion.div
-            className="flex items-center gap-1 text-green-600"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <LoadingIcon className="w-4 h-4 animate-spin" /> Syncing
-          </motion.div>
-        ) : (
-          <div className="text-xs text-secondary-foreground/50 flex items-center">Synced</div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
+  return <SyncBadge syncStatus={isSyncing ? 'pending' : 'done'} />
 }

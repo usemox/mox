@@ -93,7 +93,8 @@ export const IPC_CHANNELS = {
     MARK_AS_COMPLETED: 'action-items:mark:completed'
   },
   SETTINGS: {
-    GET_CREDENTIALS: 'settings:get:credentials',
-    SET_CREDENTIAL: 'settings:set:credential'
+    GET_CREDENTIALS: 'settings:credentials:get',
+    SET_CREDENTIAL: 'settings:credentials:set',
+    DELETE_CREDENTIAL: 'settings:credentials:delete'
   }
 }

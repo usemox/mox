@@ -2,8 +2,8 @@ import { BrowserWindow } from 'electron'
 import { google } from 'googleapis'
 import { OAuth2Client, UserRefreshClient } from 'google-auth-library'
 import { OAUTH_CONFIG } from '../config'
-import keytar from 'keytar'
 import { EventEmitter } from 'events'
+import secretsManager from '../secrets'
 
 export const AUTH_EVENTS = {
   AUTHENTICATED: 'authenticated',
@@ -20,7 +20,6 @@ export interface TokenData {
 
 class AuthService extends EventEmitter {
   private oauth2Client: OAuth2Client
-  private readonly SERVICE_NAME = 'mox-email'
   private readonly ACCOUNT_NAME = 'oauth-tokens'
 
   constructor() {
@@ -67,7 +66,7 @@ class AuthService extends EventEmitter {
             if (code) {
               const { tokens } = await this.oauth2Client.getToken(code)
 
-              await keytar.setPassword(this.SERVICE_NAME, this.ACCOUNT_NAME, JSON.stringify(tokens))
+              await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(tokens))
 
               authWindow.close()
               this.emit(AUTH_EVENTS.AUTHENTICATED)
@@ -86,7 +85,7 @@ class AuthService extends EventEmitter {
   }
 
   async getTokens(): Promise<TokenData | null> {
-    const tokensStr = await keytar.getPassword(this.SERVICE_NAME, this.ACCOUNT_NAME)
+    const tokensStr = await secretsManager.getCredential(this.ACCOUNT_NAME)
     if (!tokensStr) return null
 
     const tokens = JSON.parse(tokensStr) as TokenData
@@ -96,7 +95,7 @@ class AuthService extends EventEmitter {
       try {
         this.oauth2Client.setCredentials(tokens)
         const { credentials } = await this.oauth2Client.refreshAccessToken()
-        await keytar.setPassword(this.SERVICE_NAME, this.ACCOUNT_NAME, JSON.stringify(credentials))
+        await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(credentials))
         this.emit(AUTH_EVENTS.AUTHENTICATED)
         return credentials as TokenData
       } catch (error) {
@@ -121,12 +120,12 @@ class AuthService extends EventEmitter {
   }
 
   async logout(): Promise<void> {
-    await keytar.deletePassword(this.SERVICE_NAME, this.ACCOUNT_NAME)
+    await secretsManager.deleteCredential(this.ACCOUNT_NAME)
     this.emit(AUTH_EVENTS.LOGGED_OUT)
   }
 
   async isAuthenticated(): Promise<boolean> {
-    const tokens = await keytar.getPassword(this.SERVICE_NAME, this.ACCOUNT_NAME)
+    const tokens = await secretsManager.getCredential(this.ACCOUNT_NAME)
     return !!tokens
   }
 

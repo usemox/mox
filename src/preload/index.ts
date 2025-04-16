@@ -77,6 +77,7 @@ export interface ElectronApi {
   settings: {
     getCredentials: () => Promise<{ success: boolean; error?: string; data?: Credential[] }>
     setCredential: (id: string, secret: string) => Promise<{ success: boolean; error?: string }>
+    deleteCredential: (id: string) => Promise<{ success: boolean; error?: string }>
   }
 }
 
@@ -205,7 +206,9 @@ const api: ElectronApi = {
   settings: {
     getCredentials: () => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.GET_CREDENTIALS),
     setCredential: (id: string, secret: string) =>
-      ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.SET_CREDENTIAL, id, secret)
+      ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.SET_CREDENTIAL, id, secret),
+    deleteCredential: (id: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.DELETE_CREDENTIAL, id)
   }
 }
 

@@ -22,4 +22,14 @@ export function setupSettingsHandlers(): void {
       return { success: false, error: (error as Error).message }
     }
   })
+
+  ipcMain.handle(IPC_CHANNELS.SETTINGS.DELETE_CREDENTIAL, async (_, id: string) => {
+    try {
+      await secretsManager.deleteCredential(id)
+      return { success: true }
+    } catch (error) {
+      console.error('Credential delete error:', (error as Error).message)
+      return { success: false, error: (error as Error).message }
+    }
+  })
 }

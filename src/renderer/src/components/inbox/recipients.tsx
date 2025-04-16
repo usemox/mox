@@ -16,7 +16,6 @@ export const RecipientField = observer(({ composeId }: EmailComposerProps) => {
   // Fetch contacts with debounce
   const fetchContacts = useCallback(async (searchQuery: string) => {
     try {
-      console.log('fetching contacts', searchQuery)
       await contactsStore.getContacts(searchQuery)
     } catch (error) {
       console.error('Failed to fetch contacts:', error)
