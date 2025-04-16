@@ -7,6 +7,6 @@ export default defineConfig({
   dialect: 'sqlite',
   out: './src/main/services/database/migrations',
   dbCredentials: {
-    url: path.join(process.cwd(), 'future_store.db')
+    url: path.join(process.cwd(), 'mox_store.db')
   }
 })

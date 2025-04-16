@@ -52,10 +52,10 @@ export class DatabaseService {
 
   private getDatabasePath(): string {
     if (process.env.NODE_ENV === 'development' && process.env.DB_PATH) {
-      return path.join(process.cwd(), 'future_store.db')
+      return path.join(process.cwd(), 'mox_store.db')
     }
 
-    return path.join(app.getPath('userData'), 'future', 'future_store.db')
+    return path.join(app.getPath('userData'), 'mox', 'mox_store.db')
   }
 
   private ensureDirectoryExists(): void {

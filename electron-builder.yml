@@ -1,5 +1,5 @@
-appId: com.future.app
-productName: future
+appId: com.mox.app
+productName: mox
 directories:
   buildResources: resources
 files:
@@ -9,14 +9,14 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  - '!future_store.{db,db-shm,db-wal}'
+  - '!mox_store.{db,db-shm,db-wal}'
 extraResources:
   - from: 'src/main/services/database/migrations'
     to: 'migrations'
 asarUnpack:
   - resources/**
 win:
-  executableName: future
+  executableName: mox
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

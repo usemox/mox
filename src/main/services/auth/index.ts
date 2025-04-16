@@ -20,7 +20,7 @@ export interface TokenData {
 
 class AuthService extends EventEmitter {
   private oauth2Client: OAuth2Client
-  private readonly SERVICE_NAME = 'future-email'
+  private readonly SERVICE_NAME = 'mox-email'
   private readonly ACCOUNT_NAME = 'oauth-tokens'
 
   constructor() {

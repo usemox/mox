@@ -12,11 +12,7 @@ import { SyncState } from '@/types/sync'
 import { Database, DatabaseService } from './database'
 import { syncState } from './database/schema'
 import { eq } from 'drizzle-orm'
-const PROJECT_ID = 'future-450313'
-const TOPIC_NAME = 'gmail-watch-future'
-const SUBSCRIPTION_ENDPOINT = `projects/${PROJECT_ID}/topics/${TOPIC_NAME}`
-const SUBSCRIPTION_NAME = 'gmail-watch-sub'
-const SERVICE_ACCOUNT = 'gmail-api-push@system.gserviceaccount.com'
+import { GCLOUD_CONFIG } from './config'
 
 const MessageSchema = z.object({
   historyId: z.number(),
@@ -54,7 +50,7 @@ export class SyncService {
 
     try {
       await this.setupPubSubWatch()
-      await emailService.initializeHistoryWatch(SUBSCRIPTION_ENDPOINT)
+      await emailService.initializeHistoryWatch(GCLOUD_CONFIG.SUBSCRIPTION_ENDPOINT)
 
       const state = await this.getSyncState()
       const initialSyncComplete = state?.initialSyncComplete ?? false
@@ -100,15 +96,15 @@ export class SyncService {
     if (!this.pubsubTopic) {
       const authClient = await authService.getRefreshClient()
       const pubsub = new PubSub({
-        projectId: PROJECT_ID,
+        projectId: GCLOUD_CONFIG.PROJECT_ID,
         authClient
       })
 
       const response = await pubsub
-        .createTopic(TOPIC_NAME)
+        .createTopic(GCLOUD_CONFIG.TOPIC_NAME)
         .catch((err) => {
           if (err.code === 6) {
-            return pubsub.topic(TOPIC_NAME)
+            return pubsub.topic(GCLOUD_CONFIG.TOPIC_NAME)
           }
           throw err
         })
@@ -124,7 +120,7 @@ export class SyncService {
 
         policy.bindings?.push({
           role: 'roles/pubsub.publisher',
-          members: [`serviceAccount:${SERVICE_ACCOUNT}`]
+          members: [`serviceAccount:${GCLOUD_CONFIG.SERVICE_ACCOUNT}`]
         })
         await topic.iam.setPolicy(policy)
         this.pubsubTopic = topic
@@ -172,10 +168,10 @@ export class SyncService {
       let sub: Subscription | null = null
 
       const response = await topic
-        .createSubscription(SUBSCRIPTION_NAME)
+        .createSubscription(GCLOUD_CONFIG.SUBSCRIPTION_NAME)
         .catch((err) => {
           if (err.code === 6) {
-            return topic.subscription(SUBSCRIPTION_NAME)
+            return topic.subscription(GCLOUD_CONFIG.SUBSCRIPTION_NAME)
           }
           throw err
         })

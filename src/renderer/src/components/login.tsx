@@ -32,8 +32,8 @@ export const Login = (): JSX.Element => {
           <Card>
             <CardHeader className="text-center">
               <div className="flex items-center gap-1 self-center align-middle">
-                <img src={logo} alt="Future Mail" className="h-10 w-10" />
-                <CardTitle className="text-xl">future mail</CardTitle>
+                <img src={logo} alt="mox" className="h-8 w-8" />
+                <CardTitle className="text-xl">mox</CardTitle>
               </div>
               <CardDescription>Login with your Google account</CardDescription>
             </CardHeader>
