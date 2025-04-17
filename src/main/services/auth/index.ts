@@ -47,10 +47,7 @@ class AuthService extends EventEmitter {
       parent: parentWindow,
       width: 500,
       height: 600,
-      show: true,
-      webPreferences: {
-        nodeIntegration: true
-      }
+      show: true
     })
 
     // Handle the OAuth2 callback
