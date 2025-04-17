@@ -87,7 +87,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.39.3",
     "electron": "^34.1.1",
     "electron-builder": "^24.13.3",
