@@ -58,7 +58,7 @@
     "electron-store": "^10.0.1",
     "electron-updater": "^6.3.9",
     "google-auth-library": "^9.15.1",
-    "googleapis": "^144.0.0",
+    "googleapis": "^148.0.0",
     "keytar": "^7.9.0",
     "linkedom": "^0.18.9",
     "marked-react": "^3.0.0",
