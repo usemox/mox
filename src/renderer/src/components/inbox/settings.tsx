@@ -43,7 +43,7 @@ export const Settings = (): JSX.Element => (
         <SettingsIcon className="w-3 h-3 text-secondary-foreground/50" />
       </button>
     </DialogTrigger>
-    <DialogContent className="flex overflow-hidden bg-transparent flex-col p-0 sm:max-w-[925px] h-[70vh]">
+    <DialogContent className="flex overflow-hidden bg-transparent flex-col p-0 sm:max-w-[825px] h-[60vh]">
       <SettingsContent />
     </DialogContent>
   </Dialog>
