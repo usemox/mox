@@ -30,7 +30,7 @@ export const Settings = (): JSX.Element => (
         <DialogTitle>MOX Settings</DialogTitle>
         <DialogDescription />
       </DialogHeader>
-      <div className="grid gap-4 max-h-[40vh]">
+      <div className="grid gap-4 max-h-[40vh] px-0.5 overflow-y-auto">
         <div className="flex flex-col gap-1">
           <h2 className="text-md font-semibold">Credentials</h2>
           <p className="text-xs text-muted-foreground">
@@ -61,7 +61,7 @@ const Credentials = observer(() => (
 
 const Credential = memo(
   ({ id, secret }: { id: string; secret: string }): JSX.Element => (
-    <div className="grid grid-cols-[1fr_2fr_auto] items-center gap-2">
+    <div className="grid grid-cols-[1fr_3fr] items-center gap-2">
       <Label htmlFor={`cred-${id}`} className="text-right truncate pr-2">
         {id}
       </Label>
@@ -72,14 +72,14 @@ const Credential = memo(
           placeholder={secret}
           onChange={(e) => settingsStore.upsertSecret(id, e.target.value)}
           onBlur={() => settingsStore.saveCredential(id, secret)}
-          className="col-span-1"
+          className="col-span-1 pr-8"
         />
         <button
           className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-secondary-foreground/60 rounded-full p-0.5 border"
           onClick={() => settingsStore.removeSecret(id)}
           aria-label={`Remove ${id} credential`}
         >
-          <XIcon className="w-3 h-3" />
+          <XIcon className="w-3 h-3 bg-black" />
         </button>
       </div>
     </div>
