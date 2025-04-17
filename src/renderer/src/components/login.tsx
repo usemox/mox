@@ -2,8 +2,8 @@ import { Button } from '@renderer/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 
 import { useState, type JSX, type MouseEvent } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import logo from '@renderer/assets/logo-dark.png'
+import { Card, CardContent, CardDescription, CardHeader } from './ui/card'
+import logo from '@renderer/assets/logo.png'
 
 export const Login = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,11 +30,8 @@ export const Login = (): JSX.Element => {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-6">
           <Card>
-            <CardHeader className="text-center">
-              <div className="flex items-center gap-1 self-center align-middle">
-                <img src={logo} alt="mox" className="h-8 w-8" />
-                <CardTitle className="text-xl">mox</CardTitle>
-              </div>
+            <CardHeader className="flex flex-col gap-6 items-center pb-2">
+              <img src={logo} alt="mox" className="w-10 m-0" />
               <CardDescription>Login with your Google account</CardDescription>
             </CardHeader>
             <CardContent>

@@ -17,7 +17,6 @@ import {
 import { Separator } from '@renderer/components/ui/separator'
 import { UserIcon, SearchIcon, FileIcon, MagicIcon } from '@renderer/components/icons'
 import { useSyncEvent } from '@renderer/hooks/use-events'
-import logo from '@renderer/assets/logo-dark.png'
 import { Settings } from '@renderer/components/inbox/settings'
 import { SyncBadge } from '@renderer/components/sync-badge'
 
@@ -35,7 +34,6 @@ export const MainNav = observer(function CategoriesNav({
         <Settings />
       </div>
       <div className="flex px-4 w-full items-center justify-between">
-        <img src={logo} alt="logo" className="w-10 h-10" />
         <Menubar className="border-none bg-transparent">
           <MenubarMenu>
             <MenubarTrigger>
