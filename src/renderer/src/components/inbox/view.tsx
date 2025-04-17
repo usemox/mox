@@ -80,8 +80,8 @@ export const EmailView = observer(function EmailView(): JSX.Element {
   if (!thread) return <EmailError />
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md space-y-3 p-4 mt-6">
+    <div className="flex flex-col h-screen overflow-y-auto">
+      <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md space-y-3 p-4 pt-10">
         <div className="flex flex-col gap-1">
           <h1 className="text-md font-semibold line-clamp-1">{thread.messages[0].subject}</h1>
           <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export const EmailView = observer(function EmailView(): JSX.Element {
           </Button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      <div className="p-4 space-y-4">
         <Summary thread={thread} />
         <Thread thread={thread} />
         <ComposeForThread thread={thread} />
