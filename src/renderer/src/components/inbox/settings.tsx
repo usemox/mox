@@ -14,6 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/u
 import settingsStore from '@renderer/stores/settings'
 import { SettingsIcon, XIcon } from '../icons'
 import { SyncBadge } from '../sync-badge'
+import { TiptapEditor } from '../editor'
+import { useTiptapEditor } from '../editor'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@renderer/components/ui/select'
+import { PromptType } from '@/types/settings'
 
 export const Settings = (): JSX.Element => (
   <Dialog>
@@ -51,6 +61,7 @@ export const Settings = (): JSX.Element => (
           <p className="text-xs text-muted-foreground">
             Manage your custom prompts used used by MOX when making LLM calls.
           </p>
+          <Prompts />
         </TabsContent>
       </Tabs>
       <SyncStatus />
@@ -65,7 +76,7 @@ const SyncStatus = observer(() => (
 ))
 
 const Credentials = observer(() => {
-  if (settingsStore.currentCredentials.length === 0) {
+  if (settingsStore.credentials.size === 0) {
     return (
       <p className="text-xs text-muted-foreground self-center">
         No credentials found, add one above
@@ -73,7 +84,7 @@ const Credentials = observer(() => {
     )
   }
 
-  return settingsStore.currentCredentials.map((cred) => (
+  return Array.from(settingsStore.credentials.values()).map((cred) => (
     <Credential key={cred.id} id={cred.id} secret={cred.secret} />
   ))
 })
@@ -90,7 +101,6 @@ const Credential = memo(
           id={`cred-${id}`}
           placeholder={secret}
           onChange={(e) => settingsStore.upsertSecret(id, e.target.value)}
-          onBlur={() => settingsStore.saveCredential(id, secret)}
           className="col-span-1 pr-8"
         />
         <button
@@ -133,3 +143,43 @@ const formatToEnvVar = (input: string): string => {
     .replace(/\s+/g, '_')
     .replace(/[^A-Z0-9_]/g, '')
 }
+
+const Prompts = observer(() => {
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptType>('IMPROVE_EMAIL')
+
+  const { editor } = useTiptapEditor({
+    onUpdate: (html) => {
+      settingsStore.upsertPrompt(selectedPrompt, { id: selectedPrompt, prompt: html })
+    },
+    content: settingsStore.getPrompt(selectedPrompt)?.prompt ?? ''
+  })
+
+  return (
+    <div className="relative h-full">
+      <Select
+        value={selectedPrompt}
+        onValueChange={(value: PromptType) => setSelectedPrompt(value)}
+      >
+        <SelectTrigger
+          onClick={(e) => e.stopPropagation()}
+          size="sm"
+          className="w-[180px] border-dashed absolute z-10 right-2 top-2"
+        >
+          <SelectValue placeholder="Select a prompt" />
+        </SelectTrigger>
+        <SelectContent>
+          {Array.from(settingsStore.prompts.keys()).map((promptId) => (
+            <SelectItem key={promptId} value={promptId}>
+              {promptId}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <TiptapEditor
+        editor={editor}
+        disabled={!selectedPrompt}
+        className="border w-full h-full flex-grow border-border/50 rounded-md border-dashed"
+      />
+    </div>
+  )
+})

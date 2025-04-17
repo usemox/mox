@@ -24,7 +24,6 @@ export const RecipientField = observer(({ composeId }: EmailComposerProps) => {
 
   const handleRecipientSelect = useCallback(
     (value: string) => {
-      console.log('handleRecipientSelect', value)
       composeStore.addRecipient(composeId, value, 'to')
     },
     [composeId]
@@ -32,7 +31,6 @@ export const RecipientField = observer(({ composeId }: EmailComposerProps) => {
 
   const handleRemoveRecipient = useCallback(
     (email: string) => {
-      console.log('handleRemoveRecipient', email)
       composeStore.removeRecipient(composeId, email)
     },
     [composeId]

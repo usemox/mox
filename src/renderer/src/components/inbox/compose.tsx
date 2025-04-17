@@ -1,9 +1,6 @@
 import { observer } from 'mobx-react-lite'
-import { memo, useCallback, useEffect } from 'react'
+import { memo, useCallback } from 'react'
 import type { JSX } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
 import { Input } from '@renderer/components/ui/input'
 import { composeStore } from '@renderer/stores/compose'
 import { Button } from '../ui/button'
@@ -11,6 +8,7 @@ import { MagicIcon, MagicPenIcon, TrashIcon } from '../icons'
 import { useGenerate } from '@renderer/hooks/use-generate'
 import { RecipientField } from './recipients'
 import { cn } from '@renderer/lib/utils'
+import { TiptapEditor, useTiptapEditor } from '../editor'
 
 export type EmailComposerProps = {
   composeId: string
@@ -44,55 +42,32 @@ const SubjectField = observer(({ composeId }: EmailComposerProps) => {
   )
 })
 
-const editorConfig = {
-  extensions: [
-    StarterKit.configure({
-      bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
-      orderedList: { HTMLAttributes: { class: 'list-decimal pl-4' } }
-    }),
-    Link.configure({ openOnClick: false })
-  ],
-  editorProps: {
-    attributes: {
-      class:
-        'prose prose-invert min-h-[200px] text-sm max-h-[500px] max-w-full overflow-y-auto p-3.5 focus:outline-none'
-    }
-  }
-}
-
 const ComposeBody = observer(({ composeId, onDelete, onSend }: EmailComposerProps) => {
   const { text, isLoading, generate } = useGenerate()
 
-  const editor = useEditor({
-    ...editorConfig,
-    extensions: [...editorConfig.extensions],
-    onUpdate: ({ editor }) => {
-      composeStore.updateContent(composeId, editor.getHTML())
-    }
+  const { editor, getContent } = useTiptapEditor({
+    onUpdate: (html) => composeStore.updateContent(composeId, html),
+    content: text
   })
 
   const handleGenerate = useCallback(
     (type: 'write' | 'improve') => {
-      const content = editor?.getHTML()
+      const content = getContent()
       if (content && content.length > 0) {
         generate(content, type)
       }
     },
-    [editor, generate]
+    [getContent, generate]
   )
-
-  useEffect(() => {
-    if (text) editor?.commands.setContent(text)
-  }, [text, editor])
 
   const compose = composeStore.getCompose(composeId)
   if (!compose || !editor) return null
 
   return (
     <>
-      <EditorContent
-        disabled={isLoading}
+      <TiptapEditor
         editor={editor}
+        disabled={isLoading}
         className="border-t w-full border-border/50"
       />
       <EditorMenu

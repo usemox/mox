@@ -1,9 +1,24 @@
 import { makeAutoObservable, observable, runInAction } from 'mobx'
-import type { Credential } from '@/types/settings'
+import type { Credential, Prompt, PromptType } from '@/types/settings'
 import { SyncStatus } from '@renderer/components/sync-badge'
+import { debounce } from '@renderer/lib/utils'
 
 class SettingsStore {
   credentials = observable.map<string, Credential>()
+  prompts = observable.map<PromptType, Prompt>({
+    IMPROVE_EMAIL: {
+      id: 'IMPROVE_EMAIL',
+      prompt: ''
+    },
+    WRITE_EMAIL: {
+      id: 'WRITE_EMAIL',
+      prompt: ''
+    },
+    SUMMARIZE_EMAIL: {
+      id: 'SUMMARIZE_EMAIL',
+      prompt: ''
+    }
+  })
   syncStatus: SyncStatus = 'done'
   isLoading = false
 
@@ -42,11 +57,16 @@ class SettingsStore {
    * @param secret The secret value (usually the user input).
    */
   upsertSecret(id: string, secret: string): void {
-    if (!id) {
+    if (id === '') {
       console.warn('Cannot upsert secret: ID is required.')
       return
     }
     this.credentials.set(id, { id, secret })
+
+    debounce(async () => {
+      console.log('Saving credential:', id, secret)
+      await this.saveCredential(id, secret)
+    }, 500)()
   }
 
   /**
@@ -54,7 +74,7 @@ class SettingsStore {
    * @param secret The secret value (usually the user input).
    */
   async saveCredential(id: string, secret: string): Promise<void> {
-    if (!id || !secret) {
+    if (id === '' || secret === '') {
       console.warn('Cannot save credential: ID or secret is required.')
       return
     }
@@ -87,6 +107,11 @@ class SettingsStore {
    * @param id The ID of the credential to remove.
    */
   async removeSecret(id: string): Promise<void> {
+    if (id === '') {
+      console.warn('Cannot remove credential: ID is required.')
+      return
+    }
+
     runInAction(() => {
       this.syncStatus = 'pending'
     })
@@ -112,11 +137,12 @@ class SettingsStore {
     }
   }
 
-  /**
-   * @returns An array of CredentialState objects.
-   */
-  get currentCredentials(): Credential[] {
-    return Array.from(this.credentials.values())
+  upsertPrompt(id: PromptType, prompt: Prompt): void {
+    this.prompts.set(id, prompt)
+  }
+
+  getPrompt(id: PromptType): Prompt | undefined {
+    return this.prompts.get(id)
   }
 }
 

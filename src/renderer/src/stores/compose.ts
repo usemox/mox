@@ -18,8 +18,6 @@ const DEFAULT_EMAIL: ComposeEmail = {
   date: new Date().getTime(),
   recipients: new Map(),
   unread: true,
-  archived: false,
-  draft: true,
   body: {
     html: '',
     plain: ''
