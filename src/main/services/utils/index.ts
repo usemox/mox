@@ -17,7 +17,11 @@ export function cleanHtml(html: string, returnType: 'html' | 'text' = 'html'): s
       element.parentNode?.removeChild(element)
     })
 
-    return returnType === 'html' ? document.body.innerHTML : document.body.textContent?.trim() || ''
+    if (returnType === 'html') {
+      return document.documentElement.innerHTML
+    } else {
+      return (document.documentElement.textContent ?? '').trim()
+    }
   } catch (error) {
     console.error('Error cleaning HTML')
     return html

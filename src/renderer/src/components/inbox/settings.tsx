@@ -24,7 +24,7 @@ export const Settings = (): JSX.Element => (
         <SettingsIcon className="w-3 h-3 text-secondary-foreground/50" />
       </button>
     </DialogTrigger>
-    <DialogContent className="sm:max-w-[625px]">
+    <DialogContent className="sm:max-w-[725px]">
       <SyncStatus />
       <DialogHeader>
         <DialogTitle>MOX Settings</DialogTitle>
