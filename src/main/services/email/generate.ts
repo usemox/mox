@@ -38,8 +38,7 @@ SAMPLE EMAILS FOR TONE AND LANGUAGE:
 PERSONAL DETAILS:
 {{ personal_details }}
 
-Now, using the above examples and CONTEXT below, follow these guidelines precisely to generate clear, concise, and psychologically optimized email body.
-`
+Now, using the above examples and CONTEXT below, follow these guidelines precisely to generate clear, concise, and psychologically optimized email body.`
 
 // NOTE: this is a work in progress, we need to make it smarter, and user modifiable
 const IMPROVE_PROMPT = `You are a helpful assistant that improves emails.
@@ -71,8 +70,7 @@ SAMPLE EMAILS FOR TONE AND LANGUAGE:
 PERSONAL DETAILS:
 {{ personal_details }}
 
-Now, using the above examples and CONTEXT below, follow these guidelines precisely to improve the email body.
-`
+Now, using the above examples and CONTEXT below, follow these guidelines precisely to improve the email body.`
 
 export const generateEmail = async (
   body: string,

@@ -10,6 +10,7 @@ import {
 } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { Label } from '@renderer/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import settingsStore from '@renderer/stores/settings'
 import { SettingsIcon, XIcon } from '../icons'
 import { SyncBadge } from '../sync-badge'
@@ -24,23 +25,35 @@ export const Settings = (): JSX.Element => (
         <SettingsIcon className="w-3 h-3 text-secondary-foreground/50" />
       </button>
     </DialogTrigger>
-    <DialogContent className="sm:max-w-[725px]">
-      <SyncStatus />
+    <DialogContent className="flex flex-col sm:max-w-[725px] h-[60vh]">
       <DialogHeader>
         <DialogTitle>MOX Settings</DialogTitle>
         <DialogDescription />
       </DialogHeader>
-      <div className="grid gap-4 max-h-[40vh] px-0.5 overflow-y-auto">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-md font-semibold">Credentials</h2>
+      <Tabs defaultValue="account" className="w-full h-full overflow-y-hidden">
+        <TabsList>
+          <TabsTrigger value="credentials">Credentials</TabsTrigger>
+          <TabsTrigger value="prompts">Prompts</TabsTrigger>
+        </TabsList>
+        <TabsContent value="credentials" className="flex flex-col gap-4 h-full">
           <p className="text-xs text-muted-foreground">
             Manage third-party account credentials and environment variables required for some
             features. They are securely stored in your system&apos;s keychain.
           </p>
-        </div>
-        <NewCredential />
-        <Credentials />
-      </div>
+          <div className="flex">
+            <NewCredential />
+          </div>
+          <div className="flex gap-2 flex-col overflow-y-auto">
+            <Credentials />
+          </div>
+        </TabsContent>
+        <TabsContent value="prompts" className="flex flex-col gap-4 h-full">
+          <p className="text-xs text-muted-foreground">
+            Manage your custom prompts used used by MOX when making LLM calls.
+          </p>
+        </TabsContent>
+      </Tabs>
+      <SyncStatus />
     </DialogContent>
   </Dialog>
 )
@@ -51,13 +64,19 @@ const SyncStatus = observer(() => (
   </div>
 ))
 
-const Credentials = observer(() => (
-  <>
-    {settingsStore.currentCredentials.map((cred) => (
-      <Credential key={cred.id} id={cred.id} secret={cred.secret} />
-    ))}
-  </>
-))
+const Credentials = observer(() => {
+  if (settingsStore.currentCredentials.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground self-center">
+        No credentials found, add one above
+      </p>
+    )
+  }
+
+  return settingsStore.currentCredentials.map((cred) => (
+    <Credential key={cred.id} id={cred.id} secret={cred.secret} />
+  ))
+})
 
 const Credential = memo(
   ({ id, secret }: { id: string; secret: string }): JSX.Element => (
