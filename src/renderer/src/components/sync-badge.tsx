@@ -1,15 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { LoadingIcon } from '@renderer/components/icons'
 import type { JSX } from 'react'
+import { cn } from '@renderer/lib/utils'
 
 export type SyncStatus = 'done' | 'pending' | 'error'
 
 export const SyncBadge = ({
-  syncStatus
+  syncStatus,
+  className
 }: {
-  syncStatus: 'done' | 'pending' | 'error'
+  syncStatus: SyncStatus
+  className?: string
 }): JSX.Element => (
-  <div className="text-xs px-2 py-1 rounded-md bg-gray-400/10">
+  <div className={cn('text-xs px-2 py-1 rounded-md bg-gray-400/10', className)}>
     <AnimatePresence>
       {syncStatus === 'pending' ? (
         <motion.div

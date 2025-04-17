@@ -143,12 +143,12 @@ function NavigationMenuLink({
               after:rounded-full after:bg-[#D9D9D9] after:blur-md after:opacity-20"
             aria-hidden="true"
           />
-          <span className="z-20 bg-gradient-to-b from-white/90 via-white/70 to-white/40 bg-clip-text text-sm tracking-tighter text-transparent">
+          <span className="z-20 inline-flex items-center bg-gradient-to-b from-white/90 via-white/70 to-white/40 bg-clip-text text-sm tracking-tighter text-transparent">
             {children}
           </span>
         </>
       ) : (
-        <span className="z-20 text-sm tracking-tighter text-white/70 hover:text-white/90 transition-colors duration-200">
+        <span className="z-20 inline-flex items-center text-sm tracking-tighter text-white/70 hover:text-white/90 transition-colors duration-200">
           {children}
         </span>
       )}

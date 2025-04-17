@@ -2,6 +2,7 @@ import { KeyboardEvent, memo, useState, type JSX } from 'react'
 import { observer } from 'mobx-react-lite'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -10,9 +11,14 @@ import {
 } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { Label } from '@renderer/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink
+} from '@renderer/components/ui/navigation-menu'
 import settingsStore from '@renderer/stores/settings'
-import { SettingsIcon, XIcon } from '../icons'
+import { AiFileIcon, PasswordIcon, SettingsIcon, XIcon } from '../icons'
 import { SyncBadge } from '../sync-badge'
 import { TiptapEditor } from '../editor'
 import { useTiptapEditor } from '../editor'
@@ -24,6 +30,8 @@ import {
   SelectValue
 } from '@renderer/components/ui/select'
 import { PromptType } from '@/types/settings'
+import { cn } from '@renderer/lib/utils'
+import { Button } from '../ui/button'
 
 export const Settings = (): JSX.Element => (
   <Dialog>
@@ -35,43 +43,96 @@ export const Settings = (): JSX.Element => (
         <SettingsIcon className="w-3 h-3 text-secondary-foreground/50" />
       </button>
     </DialogTrigger>
-    <DialogContent className="flex flex-col sm:max-w-[725px] h-[60vh]">
-      <DialogHeader>
-        <DialogTitle>MOX Settings</DialogTitle>
-        <DialogDescription />
-      </DialogHeader>
-      <Tabs defaultValue="account" className="w-full h-full overflow-y-hidden">
-        <TabsList>
-          <TabsTrigger value="credentials">Credentials</TabsTrigger>
-          <TabsTrigger value="prompts">Prompts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="credentials" className="flex flex-col gap-4 h-full">
-          <p className="text-xs text-muted-foreground">
-            Manage third-party account credentials and environment variables required for some
-            features. They are securely stored in your system&apos;s keychain.
-          </p>
-          <div className="flex">
-            <NewCredential />
-          </div>
-          <div className="flex gap-2 flex-col overflow-y-auto">
-            <Credentials />
-          </div>
-        </TabsContent>
-        <TabsContent value="prompts" className="flex flex-col gap-4 h-full">
-          <p className="text-xs text-muted-foreground">
-            Manage your custom prompts used used by MOX when making LLM calls.
-          </p>
-          <Prompts />
-        </TabsContent>
-      </Tabs>
-      <SyncStatus />
+    <DialogContent className="flex overflow-hidden bg-transparent flex-col p-0 sm:max-w-[925px] h-[70vh]">
+      <SettingsContent />
     </DialogContent>
   </Dialog>
 )
 
+const SettingsContent = (): JSX.Element => {
+  const [activeSection, setActiveSection] = useState<'Credentials' | 'Prompts'>('Credentials')
+
+  return (
+    <div className="flex h-full">
+      <div className="flex flex-col gap-6 w-50 bg-background/40 backdrop-blur-md border-r border-border/50 rounded-l-lg p-6">
+        <DialogClose asChild className="">
+          <Button variant="secondary" size="icon" className="w-6 h-6 bg-secondary/60">
+            <XIcon className="w-2 h-2 text-muted-foreground" />
+          </Button>
+        </DialogClose>
+        <NavigationMenu orientation="vertical" className="block max-w-full">
+          <NavigationMenuList className="flex-col items-start gap-2">
+            <SettingsLink
+              active={activeSection === 'Credentials'}
+              onClick={() => setActiveSection('Credentials')}
+            >
+              <PasswordIcon className="w-4 h-4 mr-3" />
+              Credentials
+            </SettingsLink>
+            <SettingsLink
+              active={activeSection === 'Prompts'}
+              onClick={() => setActiveSection('Prompts')}
+            >
+              <AiFileIcon className="w-4 h-4 mr-3" />
+              Prompts
+            </SettingsLink>
+          </NavigationMenuList>
+        </NavigationMenu>
+        <SyncStatus />
+      </div>
+      <div className="flex flex-col flex-1 p-6 bg-background">
+        <DialogHeader>
+          <DialogTitle>{activeSection}</DialogTitle>
+          <DialogDescription />
+        </DialogHeader>
+        {activeSection === 'Credentials' && (
+          <div className="flex flex-col gap-4 h-full">
+            <p className="text-xs text-muted-foreground">
+              Manage third-party account credentials and environment variables required for some
+              features. They are securely stored in your system&apos;s keychain.
+            </p>
+            <div className="flex">
+              <NewCredential />
+            </div>
+            <div className="flex gap-2 flex-col overflow-y-auto">
+              <Credentials />
+            </div>
+          </div>
+        )}
+        {activeSection === 'Prompts' && (
+          <div className="flex flex-col gap-4 h-full">
+            <p className="text-xs text-muted-foreground">
+              Customize the prompts used by MOX when making LLM calls.
+            </p>
+            <Prompts />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const SettingsLink = ({
+  children,
+  active,
+  ...props
+}: React.ComponentProps<typeof NavigationMenuLink> & { active: boolean }): JSX.Element => (
+  <NavigationMenuItem className="w-full">
+    <NavigationMenuLink
+      className={cn(
+        'w-full px-3 py-2 rounded-md text-sm hover:bg-accent cursor-pointer',
+        active && 'bg-accent'
+      )}
+      {...props}
+    >
+      {children}
+    </NavigationMenuLink>
+  </NavigationMenuItem>
+)
+
 const SyncStatus = observer(() => (
-  <div className="absolute top-2 right-2">
-    <SyncBadge syncStatus={settingsStore.syncStatus} />
+  <div className="self-end w-full">
+    <SyncBadge syncStatus={settingsStore.syncStatus} className="px-3 py-2 bg-secondary/60" />
   </div>
 ))
 
