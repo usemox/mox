@@ -11,6 +11,8 @@ A lightning-fast, AI-powered email client for the modern workspace
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.2-3178C6.svg)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0.4-38B2AC.svg)](https://tailwindcss.com/)
 
+<img src="resources/demo.png" alt="Mox Client" width="100%" />
+
 </div>
 
 ---
