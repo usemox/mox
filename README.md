@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="resources/icon.png" alt="Mox Logo" width="150" />
+  <img src="resources/icon.png" alt="Mox Logo" width="100" />
 
 # Mox
 
