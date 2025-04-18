@@ -76,8 +76,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@electron-toolkit/eslint-config-prettier": "^2.0.0",
-    "@electron-toolkit/eslint-config-ts": "^2.0.0",
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@electron/rebuild": "^3.7.1",
     "@tailwindcss/postcss": "^4.0.4",
@@ -97,9 +97,9 @@
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^3.0.0-beta.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.34.3",
     "husky": "^9.0.11",
+    "eslint": "^9.24.0",
+    "eslint-plugin-react": "^7.37.5",
     "prettier": "^3.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
