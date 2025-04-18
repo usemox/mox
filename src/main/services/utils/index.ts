@@ -4,15 +4,11 @@ export function cleanHtml(html: string, returnType: 'html' | 'text' = 'html'): s
   if (!html) return ''
 
   try {
-    const { document } = parseHTML(html)
-
-    document.querySelectorAll('script').forEach((element) => {
-      element.parentNode?.removeChild(element)
-    })
-
-    document.querySelectorAll('style').forEach((element) => {
-      element.parentNode?.removeChild(element)
-    })
+    const { document } = parseHTML(
+      html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    )
 
     const quoteContainers = document.querySelectorAll(
       '.gmail_quote_container, .gmail_quote, .x_gmail_quote, .x_gmail_quote_container'

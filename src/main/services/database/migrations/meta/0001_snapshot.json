@@ -58,12 +58,8 @@
           "name": "action_items_email_id_emails_id_fk",
           "tableFrom": "action_items",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -132,9 +128,7 @@
       "indexes": {
         "email_addresses_email_unique": {
           "name": "email_addresses_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -143,12 +137,8 @@
           "name": "email_addresses_person_id_people_id_fk",
           "tableFrom": "email_addresses",
           "tableTo": "people",
-          "columnsFrom": [
-            "person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -206,9 +196,7 @@
       "indexes": {
         "email_attachments_file_name_unique": {
           "name": "email_attachments_file_name_unique",
-          "columns": [
-            "file_name"
-          ],
+          "columns": ["file_name"],
           "isUnique": true
         }
       },
@@ -217,12 +205,8 @@
           "name": "email_attachments_email_id_emails_id_fk",
           "tableFrom": "email_attachments",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -262,12 +246,8 @@
           "name": "email_bodies_email_id_emails_id_fk",
           "tableFrom": "email_bodies",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -304,9 +284,7 @@
       "indexes": {
         "email_embeddings_email_id_unique": {
           "name": "email_embeddings_email_id_unique",
-          "columns": [
-            "email_id"
-          ],
+          "columns": ["email_id"],
           "isUnique": true
         }
       },
@@ -315,12 +293,8 @@
           "name": "email_embeddings_email_id_emails_id_fk",
           "tableFrom": "email_embeddings",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -360,22 +334,15 @@
           "name": "email_labels_email_id_emails_id_fk",
           "tableFrom": "email_labels",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "email_labels_email_id_label_id_pk": {
-          "columns": [
-            "email_id",
-            "label_id"
-          ],
+          "columns": ["email_id", "label_id"],
           "name": "email_labels_email_id_label_id_pk"
         }
       },
@@ -571,12 +538,8 @@
           "name": "middleware_results_email_id_emails_id_fk",
           "tableFrom": "middleware_results",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

@@ -22,31 +22,31 @@ import { Route as ThreadsThreadIdImport } from './routes/threads.$threadId'
 const SearchRoute = SearchImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const LoginRoute = LoginImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const FolderRoute = FolderImport.update({
   id: '/$folder',
   path: '/$folder',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const ThreadsThreadIdRoute = ThreadsThreadIdImport.update({
   id: '/threads/$threadId',
   path: '/threads/$threadId',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -123,13 +123,7 @@ export interface FileRouteTypes {
   fullPaths: '/' | '/$folder' | '/login' | '/search' | '/threads/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/$folder' | '/login' | '/search' | '/threads/$threadId'
-  id:
-    | '__root__'
-    | '/'
-    | '/$folder'
-    | '/login'
-    | '/search'
-    | '/threads/$threadId'
+  id: '__root__' | '/' | '/$folder' | '/login' | '/search' | '/threads/$threadId'
   fileRoutesById: FileRoutesById
 }
 
@@ -146,7 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   FolderRoute: FolderRoute,
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
-  ThreadsThreadIdRoute: ThreadsThreadIdRoute,
+  ThreadsThreadIdRoute: ThreadsThreadIdRoute
 }
 
 export const routeTree = rootRoute

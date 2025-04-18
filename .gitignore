@@ -1,8 +1,10 @@
 node_modules
 dist
 out
+build
 .DS_Store
 *.log*
+bun.lock
 
 mox_store.db*
 email_store.db*

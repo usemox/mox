@@ -30,37 +30,53 @@ A lightning-fast, AI-powered email client for the modern workspace
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) (version 18 or above)
-- [npm](https://www.npmjs.com/)
+- [Bun](https://bun.sh/) (recommended for faster dependency installation and scripts)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mox.git
+git clone https://github.com/usemox/mox.git
 cd mox
 
-# Install dependencies
-npm install
+# Install dependencies with Bun
+bun install
 ```
 
 ### Development
 
 ```bash
 # Start the development server
-npm run dev
+bun run dev
+```
+
+### Code Quality
+
+```bash
+# Format code
+bun run format
+
+# Lint code
+bun run lint
+
+# Type check
+bun run typecheck
+
+# Run all checks (lint, format, typecheck)
+bun run check
 ```
 
 ### Building for Production
 
 ```bash
 # For Windows
-npm run build:win
+bun run build:win
 
 # For macOS
-npm run build:mac
+bun run build:mac
 
 # For Linux
-npm run build:linux
+bun run build:linux
 ```
 
 ## 🧩 Architecture
