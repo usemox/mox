@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.16",
-    "@ai-sdk/openai": "^1.1.13",
+    "@ai-sdk/openai": "^1.3.16",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@google-cloud/pubsub": "^4.10.0",
