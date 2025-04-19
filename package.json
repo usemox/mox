@@ -15,7 +15,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "bun run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps && bun husky install",
+    "postinstall": "electron-builder install-app-deps && bun husky",
     "build:unpack": "bun run build && electron-builder --dir",
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -28,7 +28,7 @@
     "lint:check": "bun eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "format:check": "bun prettier --check .",
     "check": "bun run lint:check && bun run format:check && bun run typecheck",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.16",
