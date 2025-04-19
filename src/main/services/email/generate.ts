@@ -1,8 +1,8 @@
-import { openai } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
 import { emailRepository } from '../database/email'
 import { emailService } from '.'
+import { aiProviderService, AIProvider } from '../ai_providers'
 
 // NOTE: this is a work in progress, we need to make it smarter, and user modifiable
 const WRITE_PROMPT = `You are a helpful assistant. Your goal is to craft clear, concise, and persuasive emails.
@@ -93,6 +93,8 @@ export const generateEmail = async (
   if (profile?.emailAddress) {
     systemPrompt = systemPrompt.replace('{{ personal_details }}', profile.emailAddress)
   }
+
+  const openai = await aiProviderService.getClient(AIProvider.OpenAI)
 
   const result = streamText({
     model: openai('gpt-4o'),

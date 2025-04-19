@@ -2,12 +2,12 @@ import type { EmailBody } from '@/types/email'
 import type { EmailBodyMiddleware } from '.'
 
 import { generateObject } from 'ai'
-import { openai } from '@ai-sdk/openai'
 import { Database } from '../database'
 import { z } from 'zod'
 import { middlewareResults, actionItems } from '../database/schema'
 import { ulid } from 'ulid'
 import { cleanHtml } from '../utils'
+import { AIProvider, aiProviderService } from '../ai_providers'
 
 const PROMPT = `You are a helpful assistant whose job is to analyze email content and extract action items.
 Your task is to identify any tasks, requests, or commitments that require action from the recipient.
@@ -60,6 +60,7 @@ export class ExtractActionItemMiddleware implements EmailBodyMiddleware {
     db: Database,
     { emailId, body }: { emailId: string; body: EmailBody }
   ): Promise<Record<string, unknown>> {
+    const openai = await aiProviderService.getClient(AIProvider.OpenAI)
     const { object } = await generateObject({
       model: openai('gpt-4o-mini'),
       schema: z.object({

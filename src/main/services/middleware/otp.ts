@@ -2,11 +2,11 @@ import type { EmailBody } from '@/types/email'
 import type { EmailBodyMiddleware } from '.'
 
 import { generateObject } from 'ai'
-import { openai } from '@ai-sdk/openai'
 import { Database } from '../database'
 import { z } from 'zod'
 import { middlewareResults } from '../database/schema'
 import { ulid } from 'ulid'
+import { aiProviderService, AIProvider } from '../ai_providers'
 
 const PROMPT = `You are a helpful assistent your job is to go through the HTML Email contents and extract the login code, who sent the code and the validity period.
 You only respond with the JSON object.
@@ -66,6 +66,7 @@ export class ExtractOTPMiddleware implements EmailBodyMiddleware {
     db: Database,
     { emailId, body }: { emailId: string; body: EmailBody }
   ): Promise<Record<string, unknown>> {
+    const openai = await aiProviderService.getClient(AIProvider.OpenAI)
     const { object } = await generateObject({
       model: openai('gpt-4o-mini'),
       schema: z.object({
