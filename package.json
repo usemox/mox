@@ -7,24 +7,28 @@
   "homepage": "https://electron-vite.org",
   "scripts": {
     "d": "doppler run --",
-    "format": "prettier --write .",
-    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
-    "start": "pnpm run d electron-vite preview",
-    "dev": "pnpm run d electron-vite dev",
-    "build": "pnpm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "pnpm run build && electron-builder --dir",
-    "build:win": "pnpm run build && electron-builder --win",
+    "format": "bun prettier --write .",
+    "lint": "bun eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "typecheck:node": "bun tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "bun tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "bun run typecheck:node && bun run typecheck:web",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "bun run typecheck && electron-vite build",
+    "postinstall": "electron-builder install-app-deps && bun husky install",
+    "build:unpack": "bun run build && electron-builder --dir",
+    "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:export": "drizzle-kit export > ./resources/schema.sql"
+    "db:export": "drizzle-kit export > ./resources/schema.sql",
+    "lint:check": "bun eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "format:check": "bun prettier --check .",
+    "check": "bun run lint:check && bun run format:check && bun run typecheck",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.16",
@@ -93,6 +97,7 @@
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^3.0.0-beta.0",
+    "husky": "^9.0.11",
     "eslint": "^9.24.0",
     "eslint-plugin-react": "^7.37.5",
     "prettier": "^3.3.2",
@@ -103,6 +108,6 @@
     "tailwindcss-animate": "^1.0.7",
     "tinycolor2": "^1.6.0",
     "typescript": "^5.5.2",
-    "vite": "^6.3.1"
+    "vite": "^6.1.0"
   }
 }

@@ -7,7 +7,7 @@ function isSyncStatusMessage(
   return message.type === MessageType.SYNC_STATUS
 }
 
-export const useSyncEvent = () => {
+export const useSyncEvent = (): { isSyncing: boolean } => {
   const [isSyncing, setIsSyncing] = useState(false)
   const handlerRef = useRef<(() => void) | null>(null)
 
@@ -22,7 +22,7 @@ export const useSyncEvent = () => {
       )
     }
 
-    return () => {
+    return (): void => {
       if (handlerRef.current) {
         handlerRef.current()
         handlerRef.current = null

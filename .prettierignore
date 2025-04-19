@@ -1,6 +1,8 @@
 out
 dist
 pnpm-lock.yaml
+bun.lock
 LICENSE.md
 tsconfig.json
 tsconfig.*.json
+build
