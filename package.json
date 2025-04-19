@@ -28,7 +28,7 @@
     "lint:check": "bun eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "format:check": "bun prettier --check .",
     "check": "bun run lint:check && bun run format:check && bun run typecheck",
-    "prepare": "husky init"
+    "prepare": "husky"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.16",
