@@ -15,7 +15,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "bun run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps && bun husky",
+    "postinstall": "electron-builder install-app-deps",
     "build:unpack": "bun run build && electron-builder --dir",
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -28,7 +28,7 @@
     "lint:check": "bun eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "format:check": "bun prettier --check .",
     "check": "bun run lint:check && bun run format:check && bun run typecheck",
-    "prepare": "husky"
+    "prepare": "husky init"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.16",
@@ -56,7 +56,6 @@
     "@tiptap/pm": "^2.11.5",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
-    "@types/tinycolor2": "^1.4.6",
     "ai": "^4.1.45",
     "cmdk": "^1.1.1",
     "electron-store": "^10.0.1",
@@ -79,7 +78,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@electron/rebuild": "^3.7.1",
+    "@types/tinycolor2": "^1.4.6",
     "@tailwindcss/postcss": "^4.0.4",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/router-plugin": "^1.102.1",
