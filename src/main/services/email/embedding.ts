@@ -1,7 +1,6 @@
-import { openai } from '@ai-sdk/openai'
 import { embed } from 'ai'
 import { cleanHtml } from '../utils'
-
+import { aiProviderService, AIProvider } from '../ai_providers'
 /**
  * Generates embeddings for email content
  * @param content - Email content (HTML or plain text)
@@ -9,7 +8,7 @@ import { cleanHtml } from '../utils'
  */
 export async function generateTextEmbedding(value: string): Promise<Array<number>> {
   try {
-    // Generate embeddings using OpenAI
+    const openai = await aiProviderService.getClient(AIProvider.OpenAI)
     const { embedding } = await embed({
       model: openai.embedding('text-embedding-3-small'),
       value

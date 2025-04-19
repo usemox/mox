@@ -222,7 +222,7 @@ export class SyncService {
         pageToken = nextPageToken
       } while (pageToken)
     } catch (error) {
-      console.error('Sync failed:', (error as Error).message)
+      console.error('People sync failed:', (error as Error).message)
     }
   }
 

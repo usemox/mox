@@ -1,7 +1,7 @@
 import { emailRepository } from '../database/email'
-import { openai } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
+import { aiProviderService, AIProvider } from '../ai_providers'
 
 // NOTE: this is a work in progress, we need to make it smarter, and user modifiable
 
@@ -33,6 +33,8 @@ export const generateSummary = async (threadId: string): Promise<ReadableStream<
         `### ${message.fromAddress} - ${message.subject}\n${cleanHtml(message.body?.html ?? '', 'text')}`
     )
     .join('\n')
+
+  const openai = await aiProviderService.getClient(AIProvider.OpenAI)
 
   const result = streamText({
     model: openai('gpt-4o-mini'),

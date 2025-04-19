@@ -14,6 +14,8 @@ export class PeopleRepository {
   }
 
   async insertContacts(contacts: people_v1.Schema$Person[]): Promise<void> {
+    if (contacts.length === 0) return
+
     try {
       this.db.transaction(async (tx) => {
         const peopleData = contacts.map((contact) => ({
