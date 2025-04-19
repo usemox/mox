@@ -15,7 +15,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "bun run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps && bun husky init",
+    "postinstall": "electron-builder install-app-deps",
     "build:unpack": "bun run build && electron-builder --dir",
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
