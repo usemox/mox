@@ -20,7 +20,15 @@ export interface Email {
   selected?: boolean
 }
 
-const emailFolderEnum = ['INBOX', 'SENT', 'DRAFTS', 'ARCHIVE', 'TRASH', 'SPAM', 'OUTBOX'] as const
+export const emailFolderEnum = [
+  'INBOX',
+  'SENT',
+  'DRAFTS',
+  'ARCHIVE',
+  'TRASH',
+  'SPAM',
+  'OUTBOX'
+] as const
 
 export type EmailFolder = (typeof emailFolderEnum)[number]
 

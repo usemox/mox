@@ -128,6 +128,7 @@ class EmailStore {
       this.isAuthenticated = response.success && response.isAuthenticated
       return this.isAuthenticated
     } catch (error) {
+      console.error('Failed to check auth:', error instanceof Error ? error.message : error)
       this.isAuthenticated = false
       return false
     }

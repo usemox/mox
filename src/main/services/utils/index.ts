@@ -23,7 +23,7 @@ export function cleanHtml(html: string, returnType: 'html' | 'text' = 'html'): s
       return (document.documentElement.textContent ?? '').trim()
     }
   } catch (error) {
-    console.error('Error cleaning HTML')
+    console.error('Error cleaning HTML', error)
     return html
   }
 }
