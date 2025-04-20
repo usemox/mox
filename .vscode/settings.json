@@ -14,5 +14,7 @@
     "source.fixAll.eslint": "explicit"
   },
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
-  "eslint.useFlatConfig": true
+  "eslint.useFlatConfig": true,
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

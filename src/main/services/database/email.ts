@@ -14,7 +14,7 @@ import {
 } from './schema'
 import type { Email, EmailThread, NearestNeighbor, Attachment, EmailFolder } from '@/types/email'
 import { emailMiddleware } from '../middleware'
-import { generateEmailEmbedding, generateTextEmbedding } from '../email/embedding'
+import { embeddingService } from '../email/embedding'
 import { ActionItem } from '@/types/action-item'
 import { BatchProcessor } from '../utils/batch-process'
 import { sendEmailNotification } from '../../handlers/events'
@@ -110,7 +110,7 @@ export class EmailRepository {
       emailsWithBodies,
       async (email) => {
         try {
-          const embedding = await generateEmailEmbedding(
+          const embedding = await embeddingService.generateEmailEmbedding(
             email.subject ?? null,
             email.body.html ?? email.body.plain
           )
@@ -271,7 +271,7 @@ export class EmailRepository {
   }
 
   async nearestNeighbors(query: string): Promise<NearestNeighbor[]> {
-    const embedding = await generateTextEmbedding(query)
+    const embedding = await embeddingService.generateTextEmbedding(query)
 
     if (!embedding.length) return []
 

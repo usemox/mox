@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import { cn } from '@renderer/lib/utils'
-import { useCallback, useRef, type JSX } from 'react'
+import { memo, useCallback, useRef, type JSX } from 'react'
 import { emailStore } from '@renderer/stores/email'
 import { useNavigate } from '@tanstack/react-router'
 import { KeyBinding, useKeyBindings } from '@renderer/hooks/use-key-bindings'
@@ -10,17 +9,17 @@ import { Email } from '@/types/email'
 import { Skeleton } from '@renderer/components/ui/skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-export const EmailList = observer(function Inbox({
-  emails,
-  showLoadMore = true,
-  loading = false,
-  className
-}: {
+type EmailListProps = {
   emails: Email[]
   showLoadMore?: boolean
   loading?: boolean
-  className?: string
-}): JSX.Element {
+}
+
+export const VirtualizedEmailList = observer(function Inbox({
+  emails,
+  showLoadMore = true,
+  loading = false
+}: EmailListProps): JSX.Element {
   const navigate = useNavigate()
 
   const bindings: KeyBinding[] = [
@@ -99,35 +98,41 @@ export const EmailList = observer(function Inbox({
   if (loading) return <EmailListLoading />
 
   return (
-    <div className={cn('flex flex-col gap-2 h-full', className)}>
-      <Virtuoso
-        ref={virtuosoRef}
-        data={emails}
-        context={{
-          focusThreadId: emailStore.focusThreadId,
-          showLoadMore: showLoadMore && emails.length > 0
-        }}
-        style={{ height: '100%' }}
-        fixedItemHeight={52}
-        increaseViewportBy={200}
-        itemContent={(_, email, { focusThreadId }) => {
-          return (
-            <div
-              key={email.id}
-              className={cn(ITEM_STYLE, {
-                [ITEM_ACTIVE_STYLE]: focusThreadId === email.threadId,
-                [ITEM_SELECTED_STYLE]: email.selected
-              })}
-              onMouseEnter={(): void => {
-                emailStore.setfocusThreadId(email.threadId)
-              }}
-            >
-              <EmailItem email={email} />
-            </div>
-          )
-        }}
-        components={{ Footer }}
-      />
+    <Virtuoso
+      ref={virtuosoRef}
+      data={emails}
+      context={{
+        focusThreadId: emailStore.focusThreadId,
+        showLoadMore: showLoadMore && emails.length > 0
+      }}
+      fixedItemHeight={46}
+      increaseViewportBy={200}
+      itemContent={(_, email, { focusThreadId }) => {
+        return (
+          <div
+            key={email.id}
+            style={{ height: 46, paddingTop: 4, paddingBottom: 4 }}
+            onMouseEnter={(): void => {
+              emailStore.setfocusThreadId(email.threadId)
+            }}
+          >
+            <EmailItem email={email} isFocused={focusThreadId === email.threadId} />
+          </div>
+        )
+      }}
+      components={{ Footer }}
+    />
+  )
+})
+
+export const NonVirtualizedEmailList = memo(({ emails, loading }: EmailListProps): JSX.Element => {
+  if (loading) return <EmailListLoading />
+
+  return (
+    <div className="flex flex-col gap-2">
+      {emails.map((email) => (
+        <EmailItem key={email.id} email={email} />
+      ))}
     </div>
   )
 })
@@ -168,11 +173,3 @@ export const EmailListLoading = (): JSX.Element => (
     ))}
   </div>
 )
-
-// NOTE: Find a better way to do this
-const ITEM_STYLE =
-  'group my-2 flex items-center gap-4 overflow-hidden rounded-lg border border-border/50 cursor-pointer focus:outline-none focus:ring-1 focus:ring-orange-500/25'
-export const ITEM_ACTIVE_STYLE =
-  'border border-orange-500/30 shadow-[0_0_15px_-3px_rgba(249,115,22,0.3)]'
-export const ITEM_SELECTED_STYLE =
-  'relative border border-blue-900 before:border-l-3 before:border-blue-900 before:absolute before:left-0 before:top-0 before:h-full before:w-4 before:rounded-md transition-all duration-200 ease-in-out'
