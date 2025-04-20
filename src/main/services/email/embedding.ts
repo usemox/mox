@@ -1,36 +1,52 @@
-import { embed } from 'ai'
+import { pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers'
 import { cleanHtml } from '../utils'
-import { aiProviderService, AIProvider } from '../ai_providers'
-/**
- * Generates embeddings for email content
- * @param content - Email content (HTML or plain text)
- * @returns Float32Array of embeddings
- */
-export async function generateTextEmbedding(value: string): Promise<Array<number>> {
-  try {
-    const openai = await aiProviderService.getClient(AIProvider.OpenAI)
-    const { embedding } = await embed({
-      model: openai.embedding('text-embedding-3-small'),
-      value
-    })
 
-    return embedding
-  } catch (error) {
-    console.error('Error generating embeddings:', error)
-    return []
+class EmbeddingService {
+  #extractor: FeatureExtractionPipeline | null = null
+
+  async #getExtractor(): Promise<FeatureExtractionPipeline> {
+    if (this.#extractor === null) {
+      try {
+        this.#extractor = await pipeline<'feature-extraction'>(
+          'feature-extraction',
+          'Xenova/all-MiniLM-L6-v2'
+        )
+      } catch (error) {
+        console.error('Failed to initialize embedding model:', error)
+        throw new Error('Embedding model initialization failed.')
+      }
+    }
+    return this.#extractor
+  }
+
+  /**
+   * @param value - Text content to embed.
+   * @returns Array<number> of embeddings.
+   */
+  async generateTextEmbedding(value: string): Promise<Array<number>> {
+    if (!value || value.trim().length === 0) {
+      console.warn('Attempted to generate embedding for empty string.')
+      return []
+    }
+    try {
+      const extractorInstance = await this.#getExtractor()
+      const output = await extractorInstance(value, { pooling: 'mean', normalize: true })
+      return output.tolist()[0]
+    } catch (error) {
+      console.error('Error generating local text embeddings:', error)
+      return []
+    }
+  }
+
+  /**
+   * @param subject - Email subject.
+   * @param body - Email body (HTML or plain text).
+   * @returns Array<number> of embeddings.
+   */
+  async generateEmailEmbedding(subject: string | null, body: string): Promise<Array<number>> {
+    const contentToEmbed = [subject || '', cleanHtml(body, 'text')].join('\n\n').trim()
+    return this.generateTextEmbedding(contentToEmbed)
   }
 }
 
-/**
- * Generates embeddings for an email by combining subject and body
- * @param subject - Email subject
- * @param body - Email body (HTML or plain text)
- * @returns Float32Array of embeddings
- */
-export async function generateEmailEmbedding(
-  subject: string | null,
-  body: string
-): Promise<Array<number>> {
-  const contentToEmbed = [subject || '', cleanHtml(body, 'text')].join('\n\n')
-  return generateTextEmbedding(contentToEmbed)
-}
+export const embeddingService = new EmbeddingService()

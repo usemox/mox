@@ -1,5 +1,5 @@
 import { emailStore } from '@renderer/stores/email'
-import { EmailList, EmailListLoading } from './email-list'
+import { VirtualizedEmailList, EmailListLoading } from './email-list'
 import { observer } from 'mobx-react-lite'
 import { type JSX } from 'react'
 import { MainNav } from './main-menu'
@@ -15,7 +15,9 @@ export const Inbox = observer(
         <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md">
           <MainNav profile={emailStore.profile ?? PROFILE} />
         </div>
-        <EmailList className="px-4 pb-2" emails={emailStore.emailList} />
+        <div className="flex flex-col gap-2 h-full px-4 pb-2">
+          <VirtualizedEmailList emails={emailStore.emailList} />
+        </div>
       </div>
       <Menu />
     </>

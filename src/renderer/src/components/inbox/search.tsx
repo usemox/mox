@@ -1,16 +1,15 @@
-import { useEffect, useRef, useMemo, memo, JSX } from 'react'
+import { useEffect, useRef, useMemo, memo } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Input } from '@renderer/components/ui/input'
 import Markdown from 'marked-react'
-import { Email } from '@/types/email'
 import { cn } from '@renderer/lib/utils'
 import { useSearch } from '@renderer/hooks/use-search'
 import { SummarySkeleton } from './skelaton'
-import { EmailList } from './email-list'
 import { useKeyBindings } from '@renderer/hooks/use-key-bindings'
 import { KeyBinding } from '@renderer/hooks/use-key-bindings'
 import { useNavigate } from '@tanstack/react-router'
 import { SearchIcon } from '../icons'
+import { NonVirtualizedEmailList } from './email-list'
 
 export const Search = observer(function Search() {
   const { isLoadingSummary, isLoadingReferences, error, search, references, summary } = useSearch()
@@ -54,18 +53,11 @@ export const Search = observer(function Search() {
           disabled={isLoading}
         />
       </div>
-      <ReferenceGrid references={references} loading={isLoadingReferences} />
+      <NonVirtualizedEmailList emails={references} loading={isLoadingReferences} />
       <AnswerSection summary={summary} isLoading={isLoadingSummary} error={error} />
     </div>
   )
 })
-
-const ReferenceGrid = memo(
-  ({ references, loading }: { references: Email[]; loading: boolean }): JSX.Element => (
-    <EmailList emails={references} showLoadMore={false} loading={loading} />
-  )
-)
-ReferenceGrid.displayName = 'ReferenceGrid'
 
 const AnswerSection = memo(
   ({

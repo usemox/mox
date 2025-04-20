@@ -8,8 +8,11 @@ import { Badge } from '../ui/badge'
 import { emailStore } from '@renderer/stores/email'
 import { Labels } from './lables'
 
+export const ITEM_ACTIVE_STYLE = 'border-orange-500/30 shadow-[0_0_15px_-3px_rgba(249,115,22,0.3)]'
+export const ITEM_SELECTED_STYLE = 'bg-white/10 transition-all duration-200 ease-in-out'
+
 export const EmailItem = memo(
-  ({ email }: { email: Email }): JSX.Element => (
+  ({ email, isFocused }: { email: Email; isFocused?: boolean }): JSX.Element => (
     <Link
       to="/threads/$threadId"
       onClick={(e): void => {
@@ -24,7 +27,13 @@ export const EmailItem = memo(
         }
       }}
       params={{ threadId: email.threadId ?? email.id }}
-      className="flex min-w-0 flex-1 items-center gap-4 py-2 px-4"
+      className={cn(
+        'flex min-w-0 flex-1 items-center gap-4 py-2 px-4 rounded-md border border-border/50 cursor-pointer',
+        {
+          [ITEM_ACTIVE_STYLE]: isFocused,
+          [ITEM_SELECTED_STYLE]: email.selected
+        }
+      )}
     >
       <div className="w-48 shrink-0">
         <EmailSender sender={email.fromAddress} />
