@@ -65,12 +65,14 @@ export class SyncService {
       throw new Error('Missing required GCloud config')
     }
 
-    return {
+    this.config = {
       GCLOUD_PROJECT_ID: projectId,
       GCLOUD_TOPIC_NAME: topicName,
       GCLOUD_SUBSCRIPTION_NAME: subscriptionName,
       GCLOUD_SUBSCRIPTION_ENDPOINT: `projects/${projectId}/topics/${topicName}`
     }
+
+    return this.config
   }
 
   private async _handleAuthentication(): Promise<void> {
