@@ -6,5 +6,6 @@ build
 *.log*
 bun.lock
 
+cache
 mox_store.db*
 email_store.db*
