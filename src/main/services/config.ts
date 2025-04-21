@@ -1,10 +1,3 @@
-interface OAuthConfig {
-  clientId: string
-  clientSecret: string
-  redirectUri: string
-  scopes: string[]
-}
-
 interface GCloudConfig {
   PROJECT_ID: string
   TOPIC_NAME: string
@@ -19,22 +12,6 @@ export const GCLOUD_CONFIG: GCloudConfig = {
   SUBSCRIPTION_NAME: process.env.GOOGLE_SUBSCRIPTION_NAME!,
   SERVICE_ACCOUNT: process.env.GOOGLE_SERVICE_ACCOUNT!,
   SUBSCRIPTION_ENDPOINT: `projects/${process.env.GOOGLE_PROJECT_ID}/topics/${process.env.GOOGLE_TOPIC_NAME}`
-}
-
-export const OAUTH_CONFIG: OAuthConfig = {
-  clientId: process.env.GOOGLE_CLIENT_ID!,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  redirectUri: 'http://localhost:8000/oauth2callback',
-  scopes: [
-    'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/gmail.modify',
-    'https://www.googleapis.com/auth/gmail.compose',
-    'https://www.googleapis.com/auth/gmail.send',
-    'https://www.googleapis.com/auth/pubsub',
-    'https://www.googleapis.com/auth/contacts.readonly'
-  ]
 }
 
 // Constants for IPC communication

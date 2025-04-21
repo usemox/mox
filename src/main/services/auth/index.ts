@@ -1,42 +1,69 @@
 import { BrowserWindow } from 'electron'
 import { google } from 'googleapis'
 import { OAuth2Client, UserRefreshClient } from 'google-auth-library'
-import { OAUTH_CONFIG } from '../config'
 import { EventEmitter } from 'events'
 import secretsManager from '../secrets'
+import { z } from 'zod'
+
+const OAUTH_CONFIG = {
+  redirectUri: 'http://localhost:8000/oauth2callback',
+  scopes: [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/gmail.modify',
+    'https://www.googleapis.com/auth/gmail.compose',
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/pubsub',
+    'https://www.googleapis.com/auth/contacts.readonly'
+  ]
+}
 
 export const AUTH_EVENTS = {
   AUTHENTICATED: 'authenticated',
   LOGGED_OUT: 'logged_out'
 }
 
-export interface TokenData {
-  access_token: string
-  refresh_token: string
-  scope: string
-  token_type: string
-  expiry_date: number
-}
+export const TokenDataSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string(),
+  scope: z.string(),
+  token_type: z.string(),
+  expiry_date: z.number()
+})
+
+export type TokenData = z.infer<typeof TokenDataSchema>
 
 class AuthService extends EventEmitter {
-  private oauth2Client: OAuth2Client
+  private _oauth2Client: OAuth2Client | null = null
   private readonly ACCOUNT_NAME = 'oauth-tokens'
 
   constructor() {
     super()
-    // Initialize OAuth2 client
-    // NOTE: We must not package these, use a proxy server to initiate login
-    // It's fine for dev, but not for prod
+  }
 
-    this.oauth2Client = new google.auth.OAuth2(
-      OAUTH_CONFIG.clientId,
-      OAUTH_CONFIG.clientSecret,
-      OAUTH_CONFIG.redirectUri
-    )
+  async getClient(): Promise<OAuth2Client> {
+    if (this._oauth2Client) return this._oauth2Client
+
+    try {
+      const clientId = await secretsManager.getCredential('OAUTH_CLIENT_ID_KEY')
+      const clientSecret = await secretsManager.getCredential('OAUTH_CLIENT_SECRET_KEY')
+
+      if (!clientId || !clientSecret) {
+        throw new Error('OAuth credentials not found in secrets manager.')
+      }
+
+      this._oauth2Client = new google.auth.OAuth2(clientId, clientSecret, OAUTH_CONFIG.redirectUri)
+      return this._oauth2Client
+    } catch (error) {
+      console.error('Failed to initialize AuthService:', error)
+      throw error
+    }
   }
 
   async startAuth(parentWindow: BrowserWindow): Promise<TokenData> {
-    const authUrl = this.oauth2Client.generateAuthUrl({
+    const oauth2Client = await this.getClient()
+    const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: OAUTH_CONFIG.scopes,
       prompt: 'consent'
@@ -61,13 +88,13 @@ class AuthService extends EventEmitter {
             const code = new URL(url).searchParams.get('code')
 
             if (code) {
-              const { tokens } = await this.oauth2Client.getToken(code)
-
+              const oauth2Client = await this.getClient()
+              const { tokens } = await oauth2Client.getToken(code)
               await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(tokens))
 
               authWindow.close()
               this.emit(AUTH_EVENTS.AUTHENTICATED)
-              resolve(tokens as TokenData)
+              resolve(TokenDataSchema.parse(tokens))
             }
           }
         } catch (error) {
@@ -85,16 +112,17 @@ class AuthService extends EventEmitter {
     const tokensStr = await secretsManager.getCredential(this.ACCOUNT_NAME)
     if (!tokensStr) return null
 
-    const tokens = JSON.parse(tokensStr) as TokenData
+    const tokens: TokenData = JSON.parse(tokensStr)
 
-    // Check if tokens are expired and refresh if needed
     if (tokens.expiry_date < Date.now()) {
       try {
-        this.oauth2Client.setCredentials(tokens)
-        const { credentials } = await this.oauth2Client.refreshAccessToken()
+        const oauth2Client = await this.getClient()
+        oauth2Client.setCredentials(tokens)
+        const { credentials } = await oauth2Client.refreshAccessToken()
         await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(credentials))
         this.emit(AUTH_EVENTS.AUTHENTICATED)
-        return credentials as TokenData
+        const parsedCredentials = TokenDataSchema.parse(credentials)
+        return parsedCredentials
       } catch (error) {
         console.error('Error refreshing token:', error)
         await this.logout()
@@ -128,11 +156,14 @@ class AuthService extends EventEmitter {
 
   async getAuthenticatedClient(): Promise<OAuth2Client> {
     const tokens = await this.getTokens()
+
     if (!tokens) {
       throw new Error('Not authenticated')
     }
-    this.oauth2Client.setCredentials(tokens)
-    return this.oauth2Client
+
+    const oauth2Client = await this.getClient()
+    oauth2Client.setCredentials(tokens)
+    return oauth2Client
   }
 
   async getRefreshClient(): Promise<UserRefreshClient> {
