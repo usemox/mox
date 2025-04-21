@@ -1,20 +1,3 @@
-interface GCloudConfig {
-  PROJECT_ID: string
-  TOPIC_NAME: string
-  SUBSCRIPTION_NAME: string
-  SERVICE_ACCOUNT: string
-  SUBSCRIPTION_ENDPOINT: string
-}
-
-export const GCLOUD_CONFIG: GCloudConfig = {
-  PROJECT_ID: process.env.GOOGLE_PROJECT_ID!,
-  TOPIC_NAME: process.env.GOOGLE_TOPIC_NAME!,
-  SUBSCRIPTION_NAME: process.env.GOOGLE_SUBSCRIPTION_NAME!,
-  SERVICE_ACCOUNT: process.env.GOOGLE_SERVICE_ACCOUNT!,
-  SUBSCRIPTION_ENDPOINT: `projects/${process.env.GOOGLE_PROJECT_ID}/topics/${process.env.GOOGLE_TOPIC_NAME}`
-}
-
-// Constants for IPC communication
 export const IPC_CHANNELS = {
   AUTH: {
     START_AUTH: 'auth:start',

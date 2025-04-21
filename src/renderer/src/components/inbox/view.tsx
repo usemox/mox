@@ -83,7 +83,7 @@ export const EmailView = observer(function EmailView(): JSX.Element {
     <div className="flex flex-col h-screen overflow-y-auto">
       <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md space-y-3 p-4 pt-10">
         <div className="flex flex-col gap-1">
-          <h1 className="text-md font-semibold line-clamp-1">{thread.messages[0].subject}</h1>
+          <h1 className="text-md font-semibold line-clamp-1">{thread.messages[0]?.subject}</h1>
           <div className="flex items-center gap-2">
             {labels.length > 0 && (
               <div className="flex items-center gap-1">

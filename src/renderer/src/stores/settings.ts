@@ -2,6 +2,7 @@ import { makeAutoObservable, observable, runInAction } from 'mobx'
 import type { Credential, Prompt, PromptType } from '@/types/settings'
 import { SyncStatus } from '@renderer/components/sync-badge'
 import { debounce } from '@renderer/lib/utils'
+import { OAUTH_CONFIG_KEYS, GCLOUD_CONFIG_KEYS } from '@/types/config'
 
 class SettingsStore {
   credentials = observable.map<string, Credential>()
@@ -22,8 +23,19 @@ class SettingsStore {
   syncStatus: SyncStatus = 'done'
   isLoading = false
 
+  private allConfigKeys = [
+    ...Object.values(OAUTH_CONFIG_KEYS),
+    ...Object.values(GCLOUD_CONFIG_KEYS)
+  ]
+
   constructor() {
     makeAutoObservable(this)
+  }
+
+  get isAuthReady(): boolean {
+    const requiredKeyCount = this.allConfigKeys.length
+    if (this.credentials.size < requiredKeyCount) return false
+    return this.allConfigKeys.every((key) => this.credentials.has(key))
   }
 
   async loadCredentials(): Promise<void> {
@@ -64,7 +76,6 @@ class SettingsStore {
     this.credentials.set(id, { id, secret })
 
     debounce(async () => {
-      console.log('Saving credential:', id, secret)
       await this.saveCredential(id, secret)
     }, 500)()
   }

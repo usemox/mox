@@ -1,0 +1,13 @@
+export const GCLOUD_CONFIG_KEYS = {
+  PROJECT_ID: 'GCLOUD_PROJECT_ID',
+  TOPIC_NAME: 'GCLOUD_TOPIC_NAME',
+  SUBSCRIPTION_NAME: 'GCLOUD_SUBSCRIPTION_NAME'
+}
+
+export const OAUTH_CONFIG_KEYS = {
+  CLIENT_ID: 'OAUTH_CLIENT_ID',
+  CLIENT_SECRET: 'OAUTH_CLIENT_SECRET'
+}
+
+export type GCloudConfigKeys = keyof typeof GCLOUD_CONFIG_KEYS
+export type OauthConfigKeys = keyof typeof OAUTH_CONFIG_KEYS

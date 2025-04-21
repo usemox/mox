@@ -4,6 +4,7 @@ import { OAuth2Client, UserRefreshClient } from 'google-auth-library'
 import { EventEmitter } from 'events'
 import secretsManager from '../secrets'
 import { z } from 'zod'
+import { OAUTH_CONFIG_KEYS } from '@/types/config'
 
 const OAUTH_CONFIG = {
   redirectUri: 'http://localhost:8000/oauth2callback',
@@ -46,8 +47,8 @@ class AuthService extends EventEmitter {
     if (this._oauth2Client) return this._oauth2Client
 
     try {
-      const clientId = await secretsManager.getCredential('OAUTH_CLIENT_ID_KEY')
-      const clientSecret = await secretsManager.getCredential('OAUTH_CLIENT_SECRET_KEY')
+      const clientId = await secretsManager.getCredential(OAUTH_CONFIG_KEYS.CLIENT_ID)
+      const clientSecret = await secretsManager.getCredential(OAUTH_CONFIG_KEYS.CLIENT_SECRET)
 
       if (!clientId || !clientSecret) {
         throw new Error('OAuth credentials not found in secrets manager.')
