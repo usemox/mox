@@ -1,15 +1,28 @@
 import { pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers'
 import { cleanHtml } from '../utils'
+import path from 'path'
+import { app } from 'electron'
 
 class EmbeddingService {
   #extractor: FeatureExtractionPipeline | null = null
+
+  private get cacheDir(): string {
+    if (process.env.NODE_ENV === 'development') {
+      return path.join(process.cwd(), 'cache', 'transformers')
+    }
+
+    return path.join(app.getPath('userData'), 'mox', 'cache', 'transformers')
+  }
 
   async #getExtractor(): Promise<FeatureExtractionPipeline> {
     if (this.#extractor === null) {
       try {
         this.#extractor = await pipeline<'feature-extraction'>(
           'feature-extraction',
-          'Xenova/all-MiniLM-L6-v2'
+          'Xenova/all-MiniLM-L6-v2',
+          {
+            cache_dir: this.cacheDir
+          }
         )
       } catch (error) {
         console.error('Failed to initialize embedding model:', error)
