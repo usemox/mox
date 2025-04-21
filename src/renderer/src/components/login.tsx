@@ -2,10 +2,14 @@ import { Button } from '@renderer/components/ui/button'
 import { useNavigate } from '@tanstack/react-router'
 
 import { useState, type JSX, type MouseEvent } from 'react'
-import { Card, CardContent, CardDescription, CardHeader } from './ui/card'
+import { Card, CardContent, CardHeader } from './ui/card'
 import logo from '@renderer/assets/logo.png'
+import { Input } from './ui/input'
+import settingsStore from '@renderer/stores/settings'
+import { OAUTH_CONFIG_KEYS, GCLOUD_CONFIG_KEYS } from '@/types/config'
+import { observer } from 'mobx-react-lite'
 
-export const Login = (): JSX.Element => {
+const AuthLogin = observer((): JSX.Element => {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -26,41 +30,105 @@ export const Login = (): JSX.Element => {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gray-950">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader className="flex flex-col gap-6 items-center pb-2">
-              <img src={logo} alt="mox" className="w-10 m-0" />
-              <CardDescription>Login with your Google account</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form>
-                <div className="grid gap-6">
-                  <div className="flex flex-col gap-4">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      disabled={isLoading}
-                      onClick={(e) => handleLogin(e)}
-                    >
-                      <GoogleIcon />
-                      {isLoading ? 'Awaiting consent...' : 'Login with Google'}
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-          <div className="text-balance text-center text-xs text-muted-background [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
-            By clicking continue, you agree to our <a href="#">Terms of Service</a> and{' '}
-            <a href="#">Privacy Policy</a>.
-          </div>
+    <Button
+      className="w-full"
+      disabled={isLoading || !settingsStore.isAuthReady}
+      onClick={(e) => handleLogin(e)}
+    >
+      <GoogleIcon />
+      {isLoading ? 'Awaiting consent...' : 'Login with Google'}
+    </Button>
+  )
+})
+
+const GoogleConfig = (): JSX.Element => (
+  <form className="flex flex-col gap-2">
+    <div className="flex flex-col mb-2">
+      <h3 className="text-sm font-semibold">OAuth Credentials</h3>
+      <p className="text-xs text-muted-foreground">
+        Configure OAuth credentials to use Gmail APIs. You can generate them from{' '}
+        <a
+          href="https://console.cloud.google.com/apis/credentials"
+          target="_blank"
+          className="text-primary"
+          rel="noopener noreferrer"
+        >
+          GCloud Credentials
+        </a>
+        .
+      </p>
+    </div>
+    <Input
+      type="text"
+      placeholder="OAuth Client ID"
+      onChange={(e) => settingsStore.upsertSecret(OAUTH_CONFIG_KEYS.CLIENT_ID, e.target.value)}
+    />
+    <Input
+      type="text"
+      placeholder="OAuth Client Secret"
+      onChange={(e) => settingsStore.upsertSecret(OAUTH_CONFIG_KEYS.CLIENT_SECRET, e.target.value)}
+    />
+  </form>
+)
+
+const GCloudConfig = (): JSX.Element => (
+  <form className="flex flex-col gap-2">
+    <div className="flex flex-col mb-2">
+      <h3 className="text-sm font-semibold">Google Cloud Config</h3>
+      <p className="text-xs text-muted-foreground">
+        Configure your Google Cloud project to continue. You can create one in{' '}
+        <a
+          href="https://console.cloud.google.com/projectcreate"
+          target="_blank"
+          className="text-primary"
+        >
+          GCloud Console
+        </a>
+        .
+      </p>
+    </div>
+    <Input
+      type="text"
+      placeholder="Project ID"
+      onChange={(e) => settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.PROJECT_ID, e.target.value)}
+    />
+    <Input
+      type="text"
+      placeholder="Topic Name"
+      onChange={(e) => settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.TOPIC_NAME, e.target.value)}
+    />
+    <Input
+      type="text"
+      placeholder="Subscription Name"
+      onChange={(e) =>
+        settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.SUBSCRIPTION_NAME, e.target.value)
+      }
+    />
+  </form>
+)
+
+export const Login = (): JSX.Element => (
+  <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gray-950">
+    <div className="flex w-full max-w-sm flex-col gap-6">
+      <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader className="flex flex-col gap-4 items-center pb-6">
+            <img src={logo} alt="mox" className="w-10 h-10 m-0" />
+          </CardHeader>
+          <CardContent className="flex flex-col gap-6">
+            <GCloudConfig />
+            <GoogleConfig />
+            <AuthLogin />
+          </CardContent>
+        </Card>
+        <div className="text-balance text-center text-xs text-muted-background [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
+          By clicking continue, you agree to our <a href="#">Terms of Service</a> and{' '}
+          <a href="#">Privacy Policy</a>.
         </div>
       </div>
     </div>
-  )
-}
+  </div>
+)
 
 const GoogleIcon = (): JSX.Element => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

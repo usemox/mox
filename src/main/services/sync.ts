@@ -2,7 +2,7 @@ import { emailRepository } from './database/email'
 import { emailService } from './email'
 import { PubSub, Topic, Subscription } from '@google-cloud/pubsub'
 import { Notification } from 'electron'
-import z from 'zod'
+import { z } from 'zod'
 import { peopleRepository } from './database/people'
 import { authService, AUTH_EVENTS } from './auth'
 import { peopleService } from './people'
@@ -12,7 +12,8 @@ import { SyncState } from '@/types/sync'
 import { Database, DatabaseService } from './database'
 import { syncState } from './database/schema'
 import { eq } from 'drizzle-orm'
-import { GCLOUD_CONFIG } from './config'
+import secretsManager from './secrets'
+import { GCLOUD_CONFIG_KEYS } from '@/types/config'
 
 const MessageSchema = z.object({
   historyId: z.number(),
@@ -21,22 +22,57 @@ const MessageSchema = z.object({
 
 type MessageData = z.infer<typeof MessageSchema>
 
+type GCloudConfig = {
+  GCLOUD_PROJECT_ID: string
+  GCLOUD_TOPIC_NAME: string
+  GCLOUD_SUBSCRIPTION_NAME: string
+  GCLOUD_SUBSCRIPTION_ENDPOINT: string
+}
+
+const GMAIL_SERVICE_ACCOUNT = 'gmail-api-push@system.gserviceaccount.com'
+
 export class SyncService {
   // TODO: Make these smarter, backoff, batching, parallalization etc.
   private isSyncing = false
   private isInitialized = false
+
   private readonly SYNC_PAGE_SIZE = 10
   private readonly SYNC_INTERVAL = 1000 * 10
+
   private pubsubTopic: Topic | null = null
   private pubsubSubscription: Subscription | null = null
 
   private db: Database
+  private config: GCloudConfig | null = null
 
   constructor() {
     this.db = DatabaseService.getInstance().getDb()
 
     authService.on(AUTH_EVENTS.AUTHENTICATED, this._handleAuthentication.bind(this))
     authService.on(AUTH_EVENTS.LOGGED_OUT, this._handleLogout.bind(this))
+  }
+
+  private async getConfig(): Promise<GCloudConfig> {
+    if (this.config) return this.config
+
+    const projectId = await secretsManager.getCredential(GCLOUD_CONFIG_KEYS.PROJECT_ID)
+    const topicName = await secretsManager.getCredential(GCLOUD_CONFIG_KEYS.TOPIC_NAME)
+    const subscriptionName = await secretsManager.getCredential(
+      GCLOUD_CONFIG_KEYS.SUBSCRIPTION_NAME
+    )
+
+    if (!projectId || !topicName || !subscriptionName) {
+      throw new Error('Missing required GCloud config')
+    }
+
+    this.config = {
+      GCLOUD_PROJECT_ID: projectId,
+      GCLOUD_TOPIC_NAME: topicName,
+      GCLOUD_SUBSCRIPTION_NAME: subscriptionName,
+      GCLOUD_SUBSCRIPTION_ENDPOINT: `projects/${projectId}/topics/${topicName}`
+    }
+
+    return this.config
   }
 
   private async _handleAuthentication(): Promise<void> {
@@ -50,7 +86,8 @@ export class SyncService {
 
     try {
       await this.setupPubSubWatch()
-      await emailService.initializeHistoryWatch(GCLOUD_CONFIG.SUBSCRIPTION_ENDPOINT)
+      const config = await this.getConfig()
+      await emailService.initializeHistoryWatch(config.GCLOUD_SUBSCRIPTION_ENDPOINT)
 
       const state = await this.getSyncState()
       const initialSyncComplete = state?.initialSyncComplete ?? false
@@ -95,16 +132,17 @@ export class SyncService {
   private async initPubSubTopic(): Promise<Topic> {
     if (!this.pubsubTopic) {
       const authClient = await authService.getRefreshClient()
+      const config = await this.getConfig()
       const pubsub = new PubSub({
-        projectId: GCLOUD_CONFIG.PROJECT_ID,
+        projectId: config.GCLOUD_PROJECT_ID,
         authClient
       })
 
       const response = await pubsub
-        .createTopic(GCLOUD_CONFIG.TOPIC_NAME)
+        .createTopic(config.GCLOUD_TOPIC_NAME)
         .catch((err) => {
           if (err.code === 6) {
-            return pubsub.topic(GCLOUD_CONFIG.TOPIC_NAME)
+            return pubsub.topic(config.GCLOUD_TOPIC_NAME)
           }
           throw err
         })
@@ -120,7 +158,7 @@ export class SyncService {
 
         policy.bindings?.push({
           role: 'roles/pubsub.publisher',
-          members: [`serviceAccount:${GCLOUD_CONFIG.SERVICE_ACCOUNT}`]
+          members: [`serviceAccount:${GMAIL_SERVICE_ACCOUNT}`]
         })
         await topic.iam.setPolicy(policy)
         this.pubsubTopic = topic
@@ -166,12 +204,13 @@ export class SyncService {
     try {
       const topic = await this.initPubSubTopic()
       let sub: Subscription | null = null
+      const config = await this.getConfig()
 
       const response = await topic
-        .createSubscription(GCLOUD_CONFIG.SUBSCRIPTION_NAME)
+        .createSubscription(config.GCLOUD_SUBSCRIPTION_NAME)
         .catch((err) => {
           if (err.code === 6) {
-            return topic.subscription(GCLOUD_CONFIG.SUBSCRIPTION_NAME)
+            return topic.subscription(config.GCLOUD_SUBSCRIPTION_NAME)
           }
           throw err
         })

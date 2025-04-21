@@ -17,8 +17,8 @@ export function setupAuthHandlers(): void {
 
   ipcMain.handle(IPC_CHANNELS.AUTH.CHECK_AUTH, async () => {
     try {
-      const tokens = await authService.getTokens()
-      return { success: true, isAuthenticated: !!tokens }
+      const isAuthenticated = await authService.isAuthenticated()
+      return { success: true, isAuthenticated }
     } catch (error) {
       return { success: false, error: (error as Error).message }
     }
