@@ -1,7 +1,8 @@
-import { google } from '@ai-sdk/google'
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
 import { NearestNeighbor } from '@/types/email'
+import { AIProvider } from '../ai_providers'
+import { aiProviderService } from '../ai_providers'
 
 const PROMPT = `You are a concise, helpful assistant that answers questions from the provided emails context.
 	1.	Use line breaks and bullet points for readability.
@@ -17,6 +18,8 @@ export const contextSearch = async (
   question: string
 ): Promise<ReadableStream<string>> => {
   const messageDocs = emails.map((email) => cleanHtml(email.html)).join('\n')
+
+  const google = await aiProviderService.getClient(AIProvider.Gemini)
 
   const result = streamText({
     model: google('gemini-2.0-flash'),
