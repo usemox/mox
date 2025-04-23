@@ -94,7 +94,7 @@ const SettingsContent = (): JSX.Element => {
             <div className="flex">
               <NewCredential />
             </div>
-            <div className="flex gap-2 flex-col overflow-y-auto">
+            <div className="flex gap-2 flex-col overflow-y-auto pb-4">
               <Credentials />
             </div>
           </div>
