@@ -1,5 +1,5 @@
 import { Email } from '@/types/email'
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 export const useSearch = (): {
   summary: string
@@ -16,10 +16,6 @@ export const useSearch = (): {
   const [error, setError] = useState<string | null>(null)
 
   const isSearching = useRef(false)
-
-  useEffect(() => {
-    console.log('test', summary)
-  }, [summary])
 
   const search = useCallback(async (query: string) => {
     if (isSearching.current) return
