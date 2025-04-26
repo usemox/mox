@@ -58,6 +58,8 @@ export const InboxLoading = (): JSX.Element => (
     <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md">
       <MainNav profile={emailStore.profile ?? PROFILE} />
     </div>
-    <EmailListLoading />
+    <div className="flex flex-col gap-2 h-full px-4 py-2">
+      <EmailListLoading />
+    </div>
   </div>
 )

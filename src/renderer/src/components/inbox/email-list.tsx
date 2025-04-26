@@ -154,7 +154,7 @@ const Footer = observer(
 )
 
 export const EmailListLoading = (): JSX.Element => (
-  <div className="flex flex-col space-y-2 px-4 py-4">
+  <div className="flex flex-col space-y-2">
     {Array.from({ length: 4 }).map((_, index) => (
       <div
         key={index}

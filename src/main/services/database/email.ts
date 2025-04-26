@@ -101,6 +101,15 @@ export class EmailRepository {
     }
   }
 
+  async getAttachment(id: string): Promise<Attachment | null> {
+    const result = await this.db
+      .select()
+      .from(emailAttachments)
+      .where(eq(emailAttachments.attachmentId, id))
+
+    return result[0] ?? null
+  }
+
   private async generateAndStoreEmbeddings(emailsData: Email[]): Promise<void> {
     const emailsWithBodies = emailsData.filter(
       (email): email is Email & { body: NonNullable<Email['body']> } => !!email.body
