@@ -361,9 +361,7 @@ export class EmailRepository {
           html: body?.html.replace(/src=["']cid:/g, 'src="cid://') ?? '',
           plain: body?.html ?? ''
         },
-        attachments: attachments.filter(
-          (attachment) => attachment.emailId === email.id && !attachment.contentId
-        )
+        attachments: attachments.filter((attachment) => attachment.emailId === email.id)
       }))
     }
   }
