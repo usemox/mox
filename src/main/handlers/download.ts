@@ -1,5 +1,5 @@
 import { dialog, app } from 'electron'
-import fs from 'fs'
+import { promises as fsPromises } from 'fs'
 import path from 'path'
 import { ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../services/config'
@@ -23,15 +23,19 @@ export function setupDownloadHandlers(): void {
       })
 
       if (!canceled && filePath) {
-        fs.writeFile(filePath, attachment.data ?? '', (err) => {
-          if (err) {
-            console.error('Failed to save attachment:', err)
-            return { success: false, error: err.message }
-          } else {
-            console.info(`Attachment saved successfully: ${filePath}`)
-            return { success: true, filePath }
-          }
-        })
+        try {
+          await fsPromises.writeFile(filePath, attachment.data ?? '')
+          console.info(`Attachment saved successfully: ${filePath}`)
+          return { success: true, filePath }
+        } catch (err) {
+          console.error('Failed to save attachment:', err)
+          // Ensure err is an Error object before accessing message
+          const errorMessage = err instanceof Error ? err.message : String(err)
+          return { success: false, error: errorMessage }
+        }
+      } else {
+        // Handle the case where the dialog was canceled
+        return { success: false, error: 'Save dialog canceled' }
       }
     } catch (error) {
       console.error('Error showing save dialog or processing download:', error)
