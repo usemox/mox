@@ -50,6 +50,20 @@
       "when": 1745141224842,
       "tag": "0006_clammy_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1745673068810,
+      "tag": "0007_ambiguous_human_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1745673091933,
+      "tag": "0008_aspiring_diamondback",
+      "breakpoints": true
     }
   ]
 }

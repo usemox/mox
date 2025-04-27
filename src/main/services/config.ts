@@ -48,6 +48,9 @@ export const IPC_CHANNELS = {
   PEOPLE: {
     SEARCH: 'people:search'
   },
+  ATTACHMENTS: {
+    DOWNLOAD: 'attachments:download'
+  },
   ACTION_ITEMS: {
     FETCH_BY_EMAIL_ID: 'action-items:fetch:by-email-id',
     MARK_AS_COMPLETED: 'action-items:mark:completed'

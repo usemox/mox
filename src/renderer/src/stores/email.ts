@@ -197,6 +197,15 @@ class EmailStore {
     }
   }
 
+  async downloadAttachment(id: string): Promise<void> {
+    const response = await window.api.attachments.download(id)
+    if (response.success) {
+      console.info('Attachment downloaded:', response.filePath)
+    } else {
+      console.error('Failed to download attachment:', response.error)
+    }
+  }
+
   async fetchEmailThread(threadId: string): Promise<EmailThread | null> {
     try {
       const response = await window.api.emails.fetchThread(threadId)

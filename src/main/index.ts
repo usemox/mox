@@ -10,6 +10,8 @@ import { emailRepository } from './services/database/email'
 import { setupPeopleHandlers } from './handlers/people'
 import { authService } from './services/auth'
 import { setupSettingsHandlers } from './handlers/settings'
+import { setupDownloadHandlers } from './handlers/download'
+
 let isQuitting = false
 
 protocol.registerSchemesAsPrivileged([
@@ -25,6 +27,7 @@ const setupHandlers = (): void => {
   setupPeopleHandlers()
   setupActionItemsHandlers()
   setupSettingsHandlers()
+  setupDownloadHandlers()
 }
 
 // Instantiate services - SyncService constructor now sets up listeners

@@ -79,6 +79,9 @@ export interface ElectronApi {
     setCredential: (id: string, secret: string) => Promise<{ success: boolean; error?: string }>
     deleteCredential: (id: string) => Promise<{ success: boolean; error?: string }>
   }
+  attachments: {
+    download: (id: string) => Promise<{ success: boolean; error?: string; filePath?: string }>
+  }
 }
 
 const api: ElectronApi = {
@@ -209,6 +212,9 @@ const api: ElectronApi = {
       ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.SET_CREDENTIAL, id, secret),
     deleteCredential: (id: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.DELETE_CREDENTIAL, id)
+  },
+  attachments: {
+    download: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.ATTACHMENTS.DOWNLOAD, id)
   }
 }
 
