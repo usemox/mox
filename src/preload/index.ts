@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { IPC_CHANNELS } from '../main/services/config'
 import { TokenData } from '../main/services/auth'
-import type { AttachmentFileData, Email, EmailOptions, EmailThread, Profile } from '@/types/email'
+import type { Email, EmailOptions, EmailThread, Profile, SelectedFileData } from '@/types/email'
 import type { ActionItem } from '@/types/action-item'
 import type { Contact } from '@/types/people'
 import { MessageType } from '@/types/messages'
@@ -29,7 +29,7 @@ export interface ElectronApi {
       to: string | string[],
       subject: string,
       htmlBody: string,
-      attachments: AttachmentFileData[],
+      attachments: string[],
       options: EmailOptions
     ) => Promise<{ success: boolean; data?: string; error?: string }>
     categories: () => Promise<{ success: boolean; data?: string[]; error?: string }>
@@ -68,6 +68,9 @@ export interface ElectronApi {
       labelIds: string[]
     ) => Promise<{ success: boolean; error?: string }>
   }
+  files: {
+    select: () => Promise<SelectedFileData[]>
+  }
   actionItems: {
     markAsCompleted: (id: string) => Promise<{ success: boolean; error?: string }>
   }
@@ -98,7 +101,7 @@ const api: ElectronApi = {
       to: string | string[],
       subject: string,
       htmlBody: string,
-      attachments: AttachmentFileData[] = [],
+      attachments: string[] = [],
       options: EmailOptions = {}
     ) => ipcRenderer.invoke(IPC_CHANNELS.EMAILS.SEND, to, subject, htmlBody, attachments, options),
 
@@ -182,6 +185,9 @@ const api: ElectronApi = {
 
     removeLabels: (emailIds: string[], labelIds: string[]) =>
       ipcRenderer.invoke(IPC_CHANNELS.EMAILS.REMOVE_LABELS, emailIds, labelIds)
+  },
+  files: {
+    select: () => ipcRenderer.invoke(IPC_CHANNELS.FILES.SELECT)
   },
   notifications: {
     onNewEmails: (callback) => {
