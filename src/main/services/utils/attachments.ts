@@ -40,13 +40,9 @@ export async function processAttachmentPaths(filePaths: string[]): Promise<{
   attachments: AttachmentFileData[]
   totalSize: number
 }> {
-  let totalSize = 0
   const attachments: AttachmentFileData[] = await Promise.all(
     filePaths.map(async (filePath) => {
       const buffer = await fs.readFile(filePath)
-      const stats = await fs.stat(filePath)
-      totalSize += stats.size
-
       const mimeType = getMimeType(filePath)
 
       return {
@@ -57,5 +53,6 @@ export async function processAttachmentPaths(filePaths: string[]): Promise<{
     })
   )
 
+  const totalSize = attachments.reduce((sum, attachment) => sum + attachment.content.length, 0)
   return { attachments, totalSize }
 }
