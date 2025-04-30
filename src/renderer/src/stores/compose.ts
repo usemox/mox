@@ -1,11 +1,14 @@
 import { makeAutoObservable, runInAction } from 'mobx'
 import { isValidEmail } from '@/utils/index'
-import { Email } from '@/types/email'
+import { Email, SelectedFileData } from '@/types/email'
 
 export type ComposeType = 'new' | 'reply'
 export type RecipientType = 'to' | 'cc' | 'bcc'
 
-export type ComposeEmail = Email & { recipients: Map<string, RecipientType> }
+export type ComposeEmail = Omit<Email, 'attachments'> & {
+  recipients: Map<string, RecipientType>
+  attachments: SelectedFileData[]
+}
 
 const DEFAULT_EMAIL: ComposeEmail = {
   id: '',
@@ -17,6 +20,7 @@ const DEFAULT_EMAIL: ComposeEmail = {
   headers: [],
   date: new Date().getTime(),
   recipients: new Map(),
+  attachments: [],
   unread: true,
   body: {
     html: '',
@@ -34,7 +38,13 @@ export class ComposeStore {
 
   createNewCompose(originalEmail?: ComposeEmail): string {
     const id = originalEmail?.threadId ?? crypto.randomUUID()
-    const state = { ...DEFAULT_EMAIL, ...originalEmail, id }
+
+    const state: ComposeEmail = {
+      ...DEFAULT_EMAIL,
+      ...(originalEmail ?? {}),
+      id,
+      attachments: []
+    }
     this.activeComposers.set(state.id, state)
     return state.id
   }
@@ -72,6 +82,24 @@ export class ComposeStore {
     }
   }
 
+  addAttachment(composeId: string, attachment: SelectedFileData): void {
+    const state = this.activeComposers.get(composeId)
+    if (state) {
+      if (!state.attachments.some((att) => att.path === attachment.path)) {
+        state.attachments.push(attachment)
+        this.updateLastModified(composeId)
+      }
+    }
+  }
+
+  removeAttachment(composeId: string, path: string): void {
+    const state = this.activeComposers.get(composeId)
+    if (state) {
+      state.attachments = state.attachments.filter((att) => att.path !== path)
+      this.updateLastModified(composeId)
+    }
+  }
+
   private updateLastModified(composeId: string): void {
     const state = this.activeComposers.get(composeId)
     if (state) {
@@ -96,12 +124,19 @@ export class ComposeStore {
     const bcc = recipients.filter(([, type]) => type === 'bcc').map(([email]) => email)
 
     this.isSending = true
-    const response = await window.api.emails.send(to, state.subject, state.body.html, [], {
-      cc,
-      bcc,
-      headers: JSON.parse(JSON.stringify(state.headers)),
-      threadId: state.threadId
-    })
+
+    const response = await window.api.emails.send(
+      to,
+      state.subject,
+      state.body.html,
+      state.attachments.map((att) => att.path),
+      {
+        cc,
+        bcc,
+        headers: JSON.parse(JSON.stringify(state.headers)),
+        threadId: state.threadId
+      }
+    )
 
     if (response.success) {
       this.activeComposers.delete(composeId)

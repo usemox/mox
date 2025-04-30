@@ -185,7 +185,8 @@ class EmailStore {
   setDraft(email: Email): void {
     composeStore.createNewCompose({
       ...email,
-      recipients: new Map([[parseEmail(email.fromAddress).email, 'to']])
+      recipients: new Map([[parseEmail(email.fromAddress).email, 'to']]),
+      attachments: []
     })
   }
 

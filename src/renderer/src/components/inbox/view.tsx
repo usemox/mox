@@ -144,7 +144,8 @@ const ComposeForThread = observer(function ComposeForThread({
           ...latestMessage,
           toAddress: latestMessage.fromAddress,
           fromAddress: latestMessage.toAddress,
-          recipients: new Map([[parseEmail(latestMessage.fromAddress).email, 'to']])
+          recipients: new Map([[parseEmail(latestMessage.fromAddress).email, 'to']]),
+          attachments: []
         })
       }
     },
