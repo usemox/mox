@@ -1,8 +1,14 @@
 import { google } from 'googleapis'
 import type { people_v1 } from 'googleapis'
-import { authService } from '../auth'
+import { AuthClient } from '../auth'
 
-class PeopleService {
+export class PeopleService {
+  private authClient: AuthClient
+
+  constructor(authClient: AuthClient) {
+    this.authClient = authClient
+  }
+
   private people: people_v1.People | null = null
   private readonly CACHE_TTL = 5 * 60 * 1000
 
@@ -15,8 +21,7 @@ class PeopleService {
   private async getPeopleClient(): Promise<people_v1.People> {
     const now = Date.now()
     if (!this.people || now > this.clientExpiryTime) {
-      const auth = await authService.getAuthenticatedClient()
-      this.people = google.people({ version: 'v1', auth })
+      this.people = google.people({ version: 'v1', auth: this.authClient })
       this.clientExpiryTime = now + this.CACHE_TTL
     }
     return this.people
@@ -44,5 +49,3 @@ class PeopleService {
     }
   }
 }
-
-export const peopleService = new PeopleService()

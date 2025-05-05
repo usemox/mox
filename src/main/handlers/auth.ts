@@ -1,6 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../services/config'
 import { authService } from '../services/auth'
+import { accountService } from '../services'
 
 export function setupAuthHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.AUTH.START_AUTH, async () => {
@@ -8,6 +9,8 @@ export function setupAuthHandlers(): void {
       const window = BrowserWindow.getFocusedWindow()
       if (!window) throw new Error('No window found')
       const tokens = await authService.startAuth(window)
+      const client = await authService.getRefreshClient(tokens.email)
+      accountService.addAccount(client)
       return { success: true, data: tokens }
     } catch (error) {
       console.error('Auth error:', error)

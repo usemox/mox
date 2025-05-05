@@ -1,19 +1,19 @@
 import { emailRepository } from './database/email'
-import { emailService } from './email'
 import { PubSub, Topic, Subscription } from '@google-cloud/pubsub'
 import { Notification } from 'electron'
 import { z } from 'zod'
 import { peopleRepository } from './database/people'
-import { authService, AUTH_EVENTS } from './auth'
-import { peopleService } from './people'
+import { PeopleService } from './people'
 import { sendMessageNotification } from '../handlers/events'
 import { MessageType } from '@/types/messages'
 import { SyncState } from '@/types/sync'
-import { Database, DatabaseService } from './database'
+import { Database } from './database'
 import { syncState } from './database/schema'
 import { eq } from 'drizzle-orm'
 import secretsManager from './secrets'
 import { GCLOUD_CONFIG_KEYS } from '@/types/config'
+import { EmailService } from './email'
+import { AuthClient } from './auth'
 
 const MessageSchema = z.object({
   historyId: z.number(),
@@ -43,13 +43,22 @@ export class SyncService {
   private pubsubSubscription: Subscription | null = null
 
   private db: Database
+  private emailService: EmailService
+  private peopleService: PeopleService
+  private authClient: AuthClient
+
   private config: GCloudConfig | null = null
 
-  constructor() {
-    this.db = DatabaseService.getInstance().getDb()
-
-    authService.on(AUTH_EVENTS.AUTHENTICATED, this._handleAuthentication.bind(this))
-    authService.on(AUTH_EVENTS.LOGGED_OUT, this._handleLogout.bind(this))
+  constructor(
+    db: Database,
+    emailService: EmailService,
+    authClient: AuthClient,
+    peopleService: PeopleService
+  ) {
+    this.db = db
+    this.emailService = emailService
+    this.authClient = authClient
+    this.peopleService = peopleService
   }
 
   private async getConfig(): Promise<GCloudConfig> {
@@ -65,17 +74,20 @@ export class SyncService {
       throw new Error('Missing required GCloud config')
     }
 
+    const accountTopicName = `${topicName}-${this.emailService.id}`
+    const accountSubscriptionName = `${subscriptionName}-${this.emailService.id}`
+
     this.config = {
       GCLOUD_PROJECT_ID: projectId,
-      GCLOUD_TOPIC_NAME: topicName,
-      GCLOUD_SUBSCRIPTION_NAME: subscriptionName,
-      GCLOUD_SUBSCRIPTION_ENDPOINT: `projects/${projectId}/topics/${topicName}`
+      GCLOUD_TOPIC_NAME: accountTopicName,
+      GCLOUD_SUBSCRIPTION_NAME: accountSubscriptionName,
+      GCLOUD_SUBSCRIPTION_ENDPOINT: `projects/${projectId}/topics/${accountTopicName}`
     }
 
     return this.config
   }
 
-  private async _handleAuthentication(): Promise<void> {
+  async startSync(): Promise<void> {
     if (this.isInitialized) {
       console.debug('SyncService already initialized.')
       return
@@ -87,7 +99,7 @@ export class SyncService {
     try {
       await this.setupPubSubWatch()
       const config = await this.getConfig()
-      await emailService.initializeHistoryWatch(config.GCLOUD_SUBSCRIPTION_ENDPOINT)
+      await this.emailService.initializeHistoryWatch(config.GCLOUD_SUBSCRIPTION_ENDPOINT)
 
       const state = await this.getSyncState()
       const initialSyncComplete = state?.initialSyncComplete ?? false
@@ -110,7 +122,7 @@ export class SyncService {
     }
   }
 
-  private async _handleLogout(): Promise<void> {
+  async stopSync(): Promise<void> {
     console.info('User logged out, stopping sync processes...')
     this.isInitialized = false
     this.isSyncing = false
@@ -131,11 +143,10 @@ export class SyncService {
 
   private async initPubSubTopic(): Promise<Topic> {
     if (!this.pubsubTopic) {
-      const authClient = await authService.getRefreshClient()
       const config = await this.getConfig()
       const pubsub = new PubSub({
         projectId: config.GCLOUD_PROJECT_ID,
-        authClient
+        authClient: this.authClient
       })
 
       const response = await pubsub
@@ -183,8 +194,8 @@ export class SyncService {
     }
 
     try {
-      for await (const { added, removedIds } of emailService.listHistory(storedHistory)) {
-        await emailRepository.insertEmails(added)
+      for await (const { added, removedIds } of this.emailService.listHistory(storedHistory)) {
+        await emailRepository.insertEmails(added, this.emailService.id)
         await emailRepository.deleteEmails(removedIds)
 
         if (added.length > 0) {
@@ -256,7 +267,7 @@ export class SyncService {
       this.isSyncing = true
 
       do {
-        const { connections, nextPageToken } = await peopleService.getContacts(pageToken)
+        const { connections, nextPageToken } = await this.peopleService.getContacts(pageToken)
         await peopleRepository.insertContacts(connections)
         pageToken = nextPageToken
       } while (pageToken)
@@ -266,7 +277,7 @@ export class SyncService {
   }
 
   private async getUserAccountId(): Promise<string | null> {
-    const user = await emailService.getProfile()
+    const user = await this.emailService.getProfile()
     return user?.emailAddress ?? null
   }
 
@@ -307,13 +318,13 @@ export class SyncService {
       })
 
       do {
-        const { emails, nextPageToken } = await emailService.listEmails(
+        const { emails, nextPageToken } = await this.emailService.listEmails(
           this.SYNC_PAGE_SIZE,
           pageToken
         )
 
         if (emails.length) {
-          await emailRepository.insertEmails(emails)
+          await emailRepository.insertEmails(emails, this.emailService.id)
         }
 
         console.info(`[INITIAL SYNC] Synced page ${pageToken}: ${emails.length} emails`)
@@ -357,13 +368,13 @@ export class SyncService {
       })
 
       do {
-        const { emails, nextPageToken } = await emailService.listEmails(
+        const { emails, nextPageToken } = await this.emailService.listEmails(
           this.SYNC_PAGE_SIZE,
           pageToken,
           lastSyncDate
         )
 
-        if (emails.length) await emailRepository.insertEmails(emails)
+        if (emails.length) await emailRepository.insertEmails(emails, this.emailService.id)
         console.info(`[INCREMENTAL SYNC] Synced page ${pageToken}: ${emails.length} emails`)
         pageToken = nextPageToken
 

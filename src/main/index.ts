@@ -5,7 +5,6 @@ import icon from '../../resources/icon.icns?asset'
 import { setupAuthHandlers } from './handlers/auth'
 import { setupEmailHandlers } from './handlers/email'
 import { setupActionItemsHandlers } from './handlers/action-items'
-import { SyncService } from './services/sync'
 import { emailRepository } from './services/database/email'
 import { setupPeopleHandlers } from './handlers/people'
 import { authService } from './services/auth'
@@ -29,9 +28,6 @@ const setupHandlers = (): void => {
   setupSettingsHandlers()
   setupDownloadHandlers()
 }
-
-// Instantiate services - SyncService constructor now sets up listeners
-new SyncService()
 
 function createWindow(): BrowserWindow {
   // Create the browser window.

@@ -7,10 +7,12 @@ import path from 'path'
 import * as schema from './schema'
 import { sql } from 'drizzle-orm'
 
+export type Database = ReturnType<typeof drizzle<typeof schema>>
+
 export class DatabaseService {
   private static instance: DatabaseService
   private client: Client
-  private db: ReturnType<typeof drizzle>
+  private db: Database
   private dbPath: string
 
   private constructor() {
@@ -87,7 +89,7 @@ export class DatabaseService {
     return DatabaseService.instance
   }
 
-  getDb(): ReturnType<typeof drizzle> {
+  getDb(): Database {
     return this.db
   }
 
@@ -97,5 +99,3 @@ export class DatabaseService {
     }
   }
 }
-
-export type Database = ReturnType<typeof drizzle>

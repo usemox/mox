@@ -28,6 +28,16 @@ const float32Array = customType<{
   }
 })
 
+export const linkedAccounts = sqliteTable('linked_accounts', {
+  id: text('id').primaryKey(),
+  emailAddress: text('email_address').notNull().unique(),
+  initialSyncComplete: integer('initial_sync_complete', { mode: 'boolean' }).default(false),
+  lastSyncPageToken: text('last_sync_page_token'),
+  lastSyncDate: integer('last_sync_date'),
+  syncInProgress: integer('sync_in_progress', { mode: 'boolean' }).default(false),
+  lastHistoryId: text('last_history_id')
+})
+
 export const emailFolderEnum = [
   'INBOX',
   'SENT',
@@ -42,6 +52,11 @@ export const emails = sqliteTable(
   'emails',
   {
     id: text('id').primaryKey(),
+    linkedAccountId: text('linked_account_id')
+      .references(() => linkedAccounts.id, {
+        onDelete: 'cascade'
+      })
+      .notNull(),
     threadId: text('thread_id').notNull(),
     fromAddress: text('from_address').notNull(),
     headers: text('headers', { mode: 'json' }).$type<EmailHeader[] | null>(),
@@ -56,7 +71,10 @@ export const emails = sqliteTable(
     folder: text('folder', { enum: emailFolderEnum }).notNull().default('INBOX'),
     syncedAt: integer('synced_at').notNull()
   },
-  (table) => [index('email_folder_idx').on(table.folder)]
+  (table) => [
+    index('email_folder_idx').on(table.folder),
+    index('email_account_idx').on(table.linkedAccountId)
+  ]
 )
 
 export const emailLabels = sqliteTable(
@@ -182,6 +200,7 @@ export const categories = sqliteView('categories', {
 
 export const threads = sqliteView('threads', {
   id: text('id').primaryKey(),
+  linkedAccountId: text('linked_account_id').notNull(),
   threadId: text('thread_id').notNull(),
   headers: text('headers', { mode: 'json' }).$type<EmailHeader[] | null>(),
   fromAddress: text('from_address').notNull(),
@@ -196,15 +215,16 @@ export const threads = sqliteView('threads', {
   draft: integer('draft', { mode: 'boolean' }).notNull().default(false),
   folder: text('folder', { enum: emailFolderEnum }).notNull().default('INBOX')
 }).as(sql`WITH latest_emails AS (
-  SELECT 
+  SELECT
     e.*,
     (SELECT MIN(value) FROM json_each(e.label_ids) WHERE value LIKE 'CATEGORY_%') AS category,
-    ROW_NUMBER() OVER (PARTITION BY e.thread_id ORDER BY e.date DESC) AS rn
+    ROW_NUMBER() OVER (PARTITION BY e.linked_account_id, e.thread_id ORDER BY e.date DESC) AS rn
   FROM emails e
-  WHERE e.folder = 'INBOX' 
+  WHERE e.folder = 'INBOX'
 )
 SELECT
   id,
+  linked_account_id,
   thread_id,
   headers,
   from_address,
