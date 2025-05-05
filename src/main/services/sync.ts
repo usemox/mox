@@ -94,7 +94,6 @@ export class SyncService {
     }
 
     this.isInitialized = true
-    console.info('Authentication successful, initializing SyncService...')
 
     try {
       await this.setupPubSubWatch()

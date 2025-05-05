@@ -8,10 +8,12 @@ export function setupAuthHandlers(): void {
     try {
       const window = BrowserWindow.getFocusedWindow()
       if (!window) throw new Error('No window found')
-      const tokens = await authService.startAuth(window)
-      const client = await authService.getRefreshClient(tokens.email)
-      accountService.addAccount(client)
-      return { success: true, data: tokens }
+
+      const data = await authService.startAuth(window)
+      const client = await authService.getRefreshClient(data.email)
+      accountService.initAccount(data.accountId, client)
+
+      return { success: true, data }
     } catch (error) {
       console.error('Auth error:', error)
       return { success: false, error: (error as Error).message }

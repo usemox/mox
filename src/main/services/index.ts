@@ -5,7 +5,6 @@ import { linkedAccounts } from './database/schema'
 import { EmailService } from './email'
 import { PeopleService } from './people'
 import { SyncService } from './sync'
-import { ulid } from 'ulid'
 
 /**
  * Interface defining the set of services associated with a single linked account.
@@ -40,21 +39,20 @@ export class AccountService {
 
       for (const account of accounts) {
         const authClient = await authService.getRefreshClient(account.emailAddress)
-        await this.addAccount(authClient)
+        await this.initAccount(account.id, authClient)
       }
     } catch (error) {
       console.error('Failed to load persisted accounts:', error)
     }
   }
 
-  async addAccount(authClient: AuthClient): Promise<string | null> {
+  async initAccount(id: string, authClient: AuthClient): Promise<string | null> {
     try {
       const profile = await google.gmail({ version: 'v1', auth: authClient }).users.getProfile({
         userId: 'me'
       })
 
       const emailAddress = profile.data.emailAddress
-      const accountId = ulid()
 
       if (!emailAddress) {
         console.error('Failed to retrieve profile for the account using provided AuthClient.')
@@ -70,9 +68,11 @@ export class AccountService {
         return emailAddress
       }
 
-      const emailService = new EmailService(accountId, emailAddress, authClient)
+      const emailService = new EmailService(id, emailAddress, authClient)
       const peopleService = new PeopleService(authClient)
       const syncService = new SyncService(this.db, emailService, authClient, peopleService)
+
+      syncService.startSync()
 
       const services: AccountServices = {
         authClient,
@@ -81,27 +81,9 @@ export class AccountService {
         syncService
       }
 
-      try {
-        await this.db
-          .insert(linkedAccounts)
-          .values({
-            id: accountId,
-            emailAddress,
-            lastHistoryId: null
-          })
-          .onConflictDoUpdate({
-            target: linkedAccounts.id,
-            set: { emailAddress }
-          })
-        console.log(`Account ${accountId} persisted/updated in database by AccountService.`)
-        this.activeAccounts.set(accountId, services)
-      } catch (dbError) {
-        console.error(`Database error persisting account ${accountId} in AccountService:`, dbError)
-        this.activeAccounts.delete(emailAddress)
-        throw dbError
-      }
+      this.activeAccounts.set(emailAddress, services)
 
-      return accountId
+      return emailAddress
     } catch (error) {
       console.error('Failed to add account:', error)
       return null
@@ -155,32 +137,6 @@ export class AccountService {
 
   getAllAccountIds(): string[] {
     return Array.from(this.activeAccounts.keys())
-  }
-
-  async startSyncForAll(): Promise<void> {
-    console.log('Starting sync for all active accounts...')
-    for (const [emailAddress, services] of this.activeAccounts.entries()) {
-      try {
-        console.log(`Starting sync for: ${emailAddress}`)
-        await services.syncService.startSync()
-      } catch (error) {
-        console.error(`Failed to start sync for account ${emailAddress}:`, error)
-      }
-    }
-    console.log('Sync start process initiated for all accounts.')
-  }
-
-  async stopSyncForAll(): Promise<void> {
-    console.log('Stopping sync for all active accounts...')
-    for (const [emailAddress, services] of this.activeAccounts.entries()) {
-      try {
-        console.log(`Stopping sync for: ${emailAddress}`)
-        await services.syncService.stopSync()
-      } catch (error) {
-        console.error(`Failed to stop sync for account ${emailAddress}:`, error)
-      }
-    }
-    console.log('Sync stop process initiated for all accounts.')
   }
 }
 

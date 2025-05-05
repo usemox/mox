@@ -53,7 +53,7 @@ export class DatabaseService {
   }
 
   private getDatabasePath(): string {
-    if (process.env.NODE_ENV === 'development' && process.env.DB_PATH) {
+    if (process.env.NODE_ENV === 'development') {
       return path.join(process.cwd(), 'mox_store.db')
     }
 
