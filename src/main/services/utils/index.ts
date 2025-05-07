@@ -24,7 +24,7 @@ export function cleanHtml(html: string, returnType: 'html' | 'text' = 'html'): s
     if (returnType === 'html') {
       return document.documentElement.innerHTML
     } else {
-      return (document.documentElement.textContent ?? '').trim()
+      return (document.documentElement?.textContent ?? '').trim()
     }
   } catch (error) {
     console.error('Error cleaning HTML', error)

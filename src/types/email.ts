@@ -20,6 +20,12 @@ export interface Email {
   selected?: boolean
 }
 
+export type SelectedFileData = {
+  path: string
+  filename: string
+  size: number
+}
+
 export const emailFolderEnum = [
   'INBOX',
   'SENT',

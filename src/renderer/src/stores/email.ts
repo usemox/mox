@@ -185,7 +185,8 @@ class EmailStore {
   setDraft(email: Email): void {
     composeStore.createNewCompose({
       ...email,
-      recipients: new Map([[parseEmail(email.fromAddress).email, 'to']])
+      recipients: new Map([[parseEmail(email.fromAddress).email, 'to']]),
+      attachments: []
     })
   }
 
@@ -194,6 +195,15 @@ class EmailStore {
       this.fetchEmails(50, this.emailList.length, this.currentFolder)
     } catch (error) {
       console.error('Failed to fetch emails:', error)
+    }
+  }
+
+  async downloadAttachment(id: string): Promise<void> {
+    const response = await window.api.attachments.download(id)
+    if (response.success) {
+      console.info('Attachment downloaded:', response.filePath)
+    } else {
+      console.error('Failed to download attachment:', response.error)
     }
   }
 

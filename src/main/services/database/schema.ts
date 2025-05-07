@@ -129,14 +129,18 @@ export const middlewareResults = sqliteTable('middleware_results', {
   result: text('result', { mode: 'json' }).notNull()
 })
 
-export const emailAttachments = sqliteTable('email_attachments', {
-  emailId: text('email_id').references(() => emails.id, { onDelete: 'cascade' }),
-  attachmentId: text('attachment_id').primaryKey().notNull(),
-  mimeType: text('mime_type').notNull(),
-  fileName: text('file_name').unique().notNull(),
-  contentId: text('content_id'),
-  data: blob('data').$type<Buffer>()
-})
+export const emailAttachments = sqliteTable(
+  'email_attachments',
+  {
+    emailId: text('email_id').references(() => emails.id, { onDelete: 'cascade' }),
+    attachmentId: text('attachment_id').notNull(),
+    mimeType: text('mime_type').notNull(),
+    fileName: text('file_name').notNull(),
+    contentId: text('content_id'),
+    data: blob('data').$type<Buffer>()
+  },
+  (table) => [primaryKey({ columns: [table.emailId, table.fileName] })]
+)
 
 export const configuration = sqliteTable('configuration', {
   id: text('id').primaryKey(),

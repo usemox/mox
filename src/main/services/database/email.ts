@@ -101,6 +101,15 @@ export class EmailRepository {
     }
   }
 
+  async getAttachment(id: string): Promise<Attachment | null> {
+    const result = await this.db
+      .select()
+      .from(emailAttachments)
+      .where(eq(emailAttachments.attachmentId, id))
+
+    return result[0] ?? null
+  }
+
   private async generateAndStoreEmbeddings(emailsData: Email[]): Promise<void> {
     const emailsWithBodies = emailsData.filter(
       (email): email is Email & { body: NonNullable<Email['body']> } => !!email.body
@@ -352,9 +361,7 @@ export class EmailRepository {
           html: body?.html.replace(/src=["']cid:/g, 'src="cid://') ?? '',
           plain: body?.html ?? ''
         },
-        attachments: attachments.filter(
-          (attachment) => attachment.emailId === email.id && !attachment.contentId
-        )
+        attachments: attachments.filter((attachment) => attachment.emailId === email.id)
       }))
     }
   }

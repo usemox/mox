@@ -4,11 +4,12 @@ import type { JSX } from 'react'
 import { Input } from '@renderer/components/ui/input'
 import { composeStore } from '@renderer/stores/compose'
 import { Button } from '../ui/button'
-import { MagicIcon, MagicPenIcon, TrashIcon } from '../icons'
+import { AttachmentIcon, MagicIcon, MagicPenIcon, TrashIcon, XIcon } from '../icons'
 import { useGenerate } from '@renderer/hooks/use-generate'
 import { RecipientField } from './recipients'
 import { cn } from '@renderer/lib/utils'
 import { TiptapEditor, useTiptapEditor } from '../editor'
+import { Badge } from '@renderer/components/ui/badge'
 
 export type EmailComposerProps = {
   composeId: string
@@ -81,6 +82,34 @@ const ComposeBody = observer(({ composeId, onDelete, onSend }: EmailComposerProp
   )
 })
 
+const AttachmentList = observer(({ composeId }: { composeId: string }) => {
+  const compose = composeStore.getCompose(composeId)
+  if (!compose || compose.attachments.length === 0) return null
+
+  const handleRemove = (path: string): void => {
+    composeStore.removeAttachment(composeId, path)
+  }
+
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {compose.attachments.map((att) => (
+        <Badge key={att.path} variant="outline" className="flex items-center h-8 gap-1.5">
+          <span className="truncate max-w-[150px]" title={att.filename}>
+            {att.filename}
+          </span>
+          <button
+            onClick={() => handleRemove(att.path)}
+            className="text-muted-foreground hover:text-destructive focus:outline-none"
+            aria-label={`Remove ${att.filename}`}
+          >
+            <XIcon className="w-3 h-3" />
+          </button>
+        </Badge>
+      ))}
+    </ul>
+  )
+})
+
 const EditorMenu = memo(
   ({
     onGenerate,
@@ -91,45 +120,69 @@ const EditorMenu = memo(
   }: {
     onGenerate: (type: 'write' | 'improve') => void
     isLoading: boolean
-  } & EmailComposerProps) => (
-    <div className="p-3.5 flex justify-between items-center border-t border-border/50">
-      <div className="flex gap-2">
-        <Button
-          variant="secondary"
-          onClick={() => onGenerate('improve')}
-          size="sm"
-          aria-label="Improve"
-          disabled={isLoading}
-        >
-          <MagicPenIcon />
-          Improve
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => onGenerate('write')}
-          size="sm"
-          aria-label="Generate"
-          disabled={isLoading}
-        >
-          <MagicIcon />
-          Generate
-        </Button>
+  } & EmailComposerProps) => {
+    const handleAttachFiles = async (): Promise<void> => {
+      const selectedFiles = await window.api.files.select()
+      if (selectedFiles) {
+        selectedFiles.forEach((file) => {
+          composeStore.addAttachment(composeId, file)
+        })
+      }
+    }
+
+    return (
+      <div className="p-3.5 flex flex-col gap-3.5 border-t border-border/50">
+        <AttachmentList composeId={composeId} />
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2 items-center">
+            <SendButton composeId={composeId} onSend={onSend} />
+            <Button
+              variant="ghost"
+              onClick={handleAttachFiles}
+              size="icon"
+              aria-label="Attach files"
+              className="text-muted-foreground"
+            >
+              <AttachmentIcon className="w-[18px] h-[18px]" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => onGenerate('improve')}
+              size="icon"
+              aria-label="Improve"
+              disabled={isLoading}
+              className="text-muted-foreground"
+            >
+              <MagicPenIcon className="w-[18px] h-[18px]" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => onGenerate('write')}
+              size="icon"
+              aria-label="Generate"
+              disabled={isLoading}
+              className="text-muted-foreground"
+            >
+              <MagicIcon className="w-[18px] h-[18px]" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-muted-foreground"
+              onClick={() => {
+                composeStore.closeCompose(composeId)
+                onDelete?.()
+              }}
+            >
+              <TrashIcon className="w-[18px] h-[18px]" />
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => {
-            composeStore.closeCompose(composeId)
-            onDelete?.()
-          }}
-        >
-          <TrashIcon />
-        </Button>
-        <SendButton composeId={composeId} onSend={onSend} />
-      </div>
-    </div>
-  )
+    )
+  }
 )
 EditorMenu.displayName = 'EditorMenu'
 

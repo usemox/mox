@@ -1,11 +1,17 @@
-import { ipcMain } from 'electron'
+import { ipcMain, dialog } from 'electron'
+import fs from 'fs/promises'
+import path from 'path'
 import { IPC_CHANNELS } from '../services/config'
 import { emailRepository } from '../services/database/email'
 import { generateSummary } from '../services/email/summary'
 import { contextSearch } from '../services/email/context-search'
 import { emailService } from '../services/email'
-import { AttachmentFileData, EmailFolder, EmailOptions } from '@/types/email'
+import { EmailFolder, EmailOptions, SelectedFileData } from '@/types/email'
 import { generateEmail } from '../services/email/generate'
+import { MIME_TYPE_MAP, processAttachmentPaths } from '../services/utils/attachments'
+
+const MAX_SIZE_MB = 25
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
 
 export function setupEmailHandlers(): void {
   ipcMain.handle(
@@ -28,10 +34,18 @@ export function setupEmailHandlers(): void {
       to: string | string[],
       subject: string,
       htmlBody: string,
-      attachments: AttachmentFileData[] = [],
+      attachmentPaths: string[] = [],
       options: EmailOptions = {}
     ) => {
       try {
+        const { attachments, totalSize } = await processAttachmentPaths(attachmentPaths)
+
+        if (totalSize > MAX_SIZE_BYTES) {
+          throw new Error(
+            `Total attachment size (${(totalSize / (1024 * 1024)).toFixed(2)} MB) > ${MAX_SIZE_MB}MB.`
+          )
+        }
+
         const emailId = await emailService.sendEmailWithAttachments(
           to,
           subject,
@@ -76,7 +90,6 @@ export function setupEmailHandlers(): void {
 
   ipcMain.handle(IPC_CHANNELS.EMAILS.FETCH_THREAD, async (_, threadId: string) => {
     try {
-      // NOTE: Reuse the same shared EmailRepository instance
       const thread = await emailRepository.getEmailThread(threadId)
       return { success: true, data: thread }
     } catch (error) {
@@ -187,4 +200,37 @@ export function setupEmailHandlers(): void {
       return { success: true }
     }
   )
+
+  ipcMain.handle(IPC_CHANNELS.FILES.SELECT, async () => {
+    try {
+      const result = await dialog.showOpenDialog({
+        properties: ['openFile', 'multiSelections'],
+        title: 'Select Attachments',
+        buttonLabel: 'Attach'
+      })
+
+      if (result.canceled || result.filePaths.length === 0) return null
+
+      const filesData: SelectedFileData[] = await Promise.all(
+        result.filePaths.map(async (filePath) => {
+          const stats = await fs.stat(filePath)
+          return {
+            path: filePath,
+            filename: path.basename(filePath),
+            size: stats.size
+          }
+        })
+      )
+
+      const allowedFiles = filesData.filter((file) => {
+        const ext = path.extname(file.filename).toLowerCase()
+        return ext in MIME_TYPE_MAP
+      })
+
+      return allowedFiles
+    } catch (error) {
+      console.error('File selection error:', error)
+      return null
+    }
+  })
 }

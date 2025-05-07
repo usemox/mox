@@ -81,7 +81,7 @@ export const EmailView = observer(function EmailView(): JSX.Element {
 
   return (
     <div className="flex flex-col h-screen overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md space-y-3 p-4 pt-10">
+      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-md border-b border-border/30 shadow-md space-y-3 p-4 pt-10">
         <div className="flex flex-col gap-1">
           <h1 className="text-md font-semibold line-clamp-1">{thread.messages[0]?.subject}</h1>
           <div className="flex items-center gap-2">
@@ -144,7 +144,8 @@ const ComposeForThread = observer(function ComposeForThread({
           ...latestMessage,
           toAddress: latestMessage.fromAddress,
           fromAddress: latestMessage.toAddress,
-          recipients: new Map([[parseEmail(latestMessage.fromAddress).email, 'to']])
+          recipients: new Map([[parseEmail(latestMessage.fromAddress).email, 'to']]),
+          attachments: []
         })
       }
     },
@@ -264,6 +265,7 @@ const AttachmentItem = ({ attachment }: { attachment: Attachment }): JSX.Element
     <div
       className="flex items-center gap-2 p-1 pr-3 rounded-md bg-accent/50 hover:bg-accent cursor-pointer transition-colors"
       title={attachment.fileName}
+      onClick={() => emailStore.downloadAttachment(attachment.attachmentId)}
     >
       <div className="flex items-center justify-center w-8 h-6 rounded bg-primary/10 text-[8px] font-bold">
         {fileType.substring(0, 3)}
