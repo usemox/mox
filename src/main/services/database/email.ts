@@ -40,11 +40,12 @@ export class EmailRepository {
     await this.db.update(emails).set({ unread: false }).where(inArray(emails.id, emailIds))
   }
 
-  async insertEmails(emailsData: Email[]): Promise<void> {
+  async insertEmails(emailsData: Email[], linkedAccountId: string): Promise<void> {
     if (!emailsData.length) return
 
     const emailValues = emailsData.map((email) => ({
       ...email,
+      linkedAccountId,
       syncedAt: Date.now()
     }))
 

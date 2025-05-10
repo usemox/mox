@@ -1,7 +1,6 @@
 import { streamText } from 'ai'
 import { cleanHtml } from '../utils'
 import { emailRepository } from '../database/email'
-import { emailService } from '.'
 import { aiProviderService, AIProvider } from '../ai_providers'
 
 // NOTE: this is a work in progress, we need to make it smarter, and user modifiable
@@ -81,17 +80,12 @@ export const generateEmail = async (
   let systemPrompt = type === 'write' ? WRITE_PROMPT : IMPROVE_PROMPT
 
   const sentMails = await emailRepository.getRecentEmails(3, 0, 'SENT')
-  const profile = await emailService.getProfile()
 
   if (sentMails.length > 0) {
     const sampleEmails = sentMails
       .map((mail) => cleanHtml(mail.body?.html ?? '', 'html'))
       .join('\n')
     systemPrompt = systemPrompt.replace('{{ sample_emails }}', sampleEmails)
-  }
-
-  if (profile?.emailAddress) {
-    systemPrompt = systemPrompt.replace('{{ personal_details }}', profile.emailAddress)
   }
 
   const openai = await aiProviderService.getClient(AIProvider.OpenAI)
