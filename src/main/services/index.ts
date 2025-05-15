@@ -70,7 +70,7 @@ export class AccountService {
 
       const emailService = new EmailService(id, emailAddress, authClient)
       const peopleService = new PeopleService(authClient)
-      const syncService = new SyncService(this.db, emailService, authClient, peopleService)
+      const syncService = new SyncService(this.db, emailService, peopleService)
 
       syncService.startSync()
 

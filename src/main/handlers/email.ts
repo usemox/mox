@@ -81,12 +81,17 @@ export function setupEmailHandlers(): void {
     try {
       const profile = accountService.getAllAccountIds()
       const unreadEmails = await emailRepository.getUnreadCount()
-      return {
-        success: true,
-        data: {
-          email: profile?.[0],
+
+      const data = profile.map((email) => {
+        return {
+          email,
           unreadEmails
         }
+      })
+
+      return {
+        success: true,
+        data
       }
     } catch (error) {
       console.error('Email categories fetch error:', (error as Error).message)
