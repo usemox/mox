@@ -1,4 +1,4 @@
-import type { JSX } from 'react'
+import type { JSX, MouseEvent } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from '@tanstack/react-router'
 import { NewEmail } from '@renderer/components/inbox/new-mail'
@@ -21,11 +21,24 @@ import { Settings } from '@renderer/components/inbox/settings'
 import { SyncBadge } from '@renderer/components/sync-badge'
 
 export const MainNav = observer(function CategoriesNav({
-  profile
+  profiles
 }: {
-  profile: Profile
+  profiles: Profile[]
 }): JSX.Element {
   const navigate = useNavigate()
+
+  const handleLogin = async (e: MouseEvent<HTMLDivElement>): Promise<void> => {
+    e.preventDefault()
+    try {
+      const response = await window.api.auth.startAuth()
+      if (!response.success) {
+        throw new Error(response.error)
+      }
+      navigate({ to: '/', search: { category: undefined } })
+    } catch (error) {
+      console.error('Login failed:', error)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4 justify-between items-end z-50">
@@ -38,9 +51,14 @@ export const MainNav = observer(function CategoriesNav({
           <MenubarMenu>
             <MenubarTrigger>
               <UserIcon className="w-4 h-4 mr-2 text-primary/80" />
-              {profile.email}
+              <span>{profiles[0].email}</span>
             </MenubarTrigger>
             <MenubarContent>
+              {profiles.map((profile) => (
+                <MenubarItem key={profile.email}>{profile.email}</MenubarItem>
+              ))}
+              <MenubarSeparator />
+              <MenubarItem onClick={handleLogin}>Add Account</MenubarItem>
               <MenubarItem>
                 Logout <MenubarShortcut>⌘T</MenubarShortcut>
               </MenubarItem>
