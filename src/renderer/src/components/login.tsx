@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from './ui/card'
 import logo from '@renderer/assets/logo.png'
 import { Input } from './ui/input'
 import settingsStore from '@renderer/stores/settings'
-import { OAUTH_CONFIG_KEYS, GCLOUD_CONFIG_KEYS } from '@/types/config'
+import { OAUTH_CONFIG_KEYS } from '@/types/config'
 import { observer } from 'mobx-react-lite'
 
 const AuthLogin = observer((): JSX.Element => {
@@ -71,42 +71,6 @@ const GoogleConfig = (): JSX.Element => (
   </form>
 )
 
-const GCloudConfig = (): JSX.Element => (
-  <form className="flex flex-col gap-2">
-    <div className="flex flex-col mb-2">
-      <h3 className="text-sm font-semibold">Google Cloud Config</h3>
-      <p className="text-xs text-muted-foreground">
-        Configure your Google Cloud project to continue. You can create one in{' '}
-        <a
-          href="https://console.cloud.google.com/projectcreate"
-          target="_blank"
-          className="text-primary"
-        >
-          GCloud Console
-        </a>
-        .
-      </p>
-    </div>
-    <Input
-      type="text"
-      placeholder="Project ID"
-      onChange={(e) => settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.PROJECT_ID, e.target.value)}
-    />
-    <Input
-      type="text"
-      placeholder="Topic Name"
-      onChange={(e) => settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.TOPIC_NAME, e.target.value)}
-    />
-    <Input
-      type="text"
-      placeholder="Subscription Name"
-      onChange={(e) =>
-        settingsStore.upsertSecret(GCLOUD_CONFIG_KEYS.SUBSCRIPTION_NAME, e.target.value)
-      }
-    />
-  </form>
-)
-
 export const Login = (): JSX.Element => (
   <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gray-950">
     <div className="flex w-full max-w-sm flex-col gap-6">
@@ -116,7 +80,6 @@ export const Login = (): JSX.Element => (
             <img src={logo} alt="mox" className="w-10 h-10 m-0" />
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
-            <GCloudConfig />
             <GoogleConfig />
             <AuthLogin />
           </CardContent>

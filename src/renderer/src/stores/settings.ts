@@ -2,7 +2,7 @@ import { makeAutoObservable, observable, runInAction } from 'mobx'
 import type { Credential, Prompt, PromptType } from '@/types/settings'
 import { SyncStatus } from '@renderer/components/sync-badge'
 import { debounce } from '@renderer/lib/utils'
-import { OAUTH_CONFIG_KEYS, GCLOUD_CONFIG_KEYS } from '@/types/config'
+import { OAUTH_CONFIG_KEYS } from '@/types/config'
 
 class SettingsStore {
   credentials = observable.map<string, Credential>()
@@ -23,10 +23,7 @@ class SettingsStore {
   syncStatus: SyncStatus = 'done'
   isLoading = false
 
-  private allConfigKeys = [
-    ...Object.values(OAUTH_CONFIG_KEYS),
-    ...Object.values(GCLOUD_CONFIG_KEYS)
-  ]
+  private allConfigKeys = [...Object.values(OAUTH_CONFIG_KEYS)]
 
   constructor() {
     makeAutoObservable(this)
