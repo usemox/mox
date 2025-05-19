@@ -3,6 +3,11 @@ import { createHashHistory, createRouter, RouterProvider } from '@tanstack/react
 
 import { routeTree } from './routeTree.gen'
 import { KeyBindingsProvider } from './hooks/use-key-bindings'
+import { PostHogProvider } from 'posthog-js/react'
+
+const options = {
+  api_host: 'https://us.i.posthog.com'
+}
 
 const hashHistory = createHashHistory()
 declare module '@tanstack/react-router' {
@@ -20,9 +25,11 @@ const router = createRouter({
 
 function App(): JSX.Element {
   return (
-    <KeyBindingsProvider>
-      <RouterProvider router={router} />
-    </KeyBindingsProvider>
+    <PostHogProvider apiKey={process.env.POSTHOG_API_KEY!} options={options}>
+      <KeyBindingsProvider>
+        <RouterProvider router={router} />
+      </KeyBindingsProvider>
+    </PostHogProvider>
   )
 }
 

@@ -81,12 +81,17 @@ export function setupEmailHandlers(): void {
     try {
       const profile = accountService.getAllAccountIds()
       const unreadEmails = await emailRepository.getUnreadCount()
-      return {
-        success: true,
-        data: {
-          email: profile?.[0],
+
+      const data = profile.map((email) => {
+        return {
+          email,
           unreadEmails
         }
+      })
+
+      return {
+        success: true,
+        data
       }
     } catch (error) {
       console.error('Email categories fetch error:', (error as Error).message)
@@ -122,7 +127,7 @@ export function setupEmailHandlers(): void {
       return { success: true, data: 'No results found' }
     }
 
-    const references = await emailRepository.getThreadsByEmailIds(
+    const references = await emailRepository.getEmailsByIds(
       nearestNeighbors.map((neighbor) => neighbor.emailId)
     )
     _.sender.send(IPC_CHANNELS.EMAILS.SEARCH_REFERENCE, references)
