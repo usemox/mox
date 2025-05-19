@@ -161,7 +161,6 @@ class AuthService {
 
   async checkInitialAuthStatus(): Promise<void> {
     const accounts = await this.getLinkedAccounts()
-    console.log('Checking initial auth status for accounts:', accounts)
     if (accounts.length > 0) {
       await accountService.loadPersistedAccounts()
     } else {
