@@ -10,7 +10,7 @@ class EmailStore {
   focusThreadId: string | null = null
   reachedEnd: boolean = false
   lastEmailsFetched: number = 0
-  profile: Profile | null = null
+  profiles: Profile[] = []
 
   private _selectedIds: Set<string> = new Set()
   private _lastSelectedId: string | null = null
@@ -135,11 +135,11 @@ class EmailStore {
   }
 
   async getProfile(): Promise<void> {
-    if (this.profile) return
+    if (this.profiles.length > 0) return
     const response = await window.api.emails.getProfile()
 
     runInAction(() => {
-      if (response.data) this.profile = response.data
+      if (response.data) this.profiles = response.data
     })
   }
 

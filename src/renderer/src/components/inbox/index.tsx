@@ -6,14 +6,12 @@ import { MainNav } from './main-menu'
 import { ActionMenu } from './action-menu'
 import { motion, AnimatePresence } from 'motion/react'
 
-const PROFILE = { unreadEmails: 0, email: 'MailBox <your@email.com>' }
-
 export const Inbox = observer(
   (): JSX.Element => (
     <>
       <div className="flex flex-col h-screen overflow-y-auto">
         <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md">
-          <MainNav profile={emailStore.profile ?? PROFILE} />
+          <MainNav profiles={emailStore.profiles} />
         </div>
         <div className="flex flex-col gap-2 h-full px-4 pb-2">
           <VirtualizedEmailList emails={emailStore.emailList} />
@@ -56,7 +54,7 @@ const Menu = observer(
 export const InboxLoading = (): JSX.Element => (
   <div className="flex flex-col h-screen overflow-y-auto">
     <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-md border-b border-border/30 shadow-md">
-      <MainNav profile={emailStore.profile ?? PROFILE} />
+      <MainNav profiles={emailStore.profiles} />
     </div>
     <div className="flex flex-col gap-2 h-full px-4 py-2">
       <EmailListLoading />

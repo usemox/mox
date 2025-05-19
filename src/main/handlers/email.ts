@@ -5,10 +5,10 @@ import { IPC_CHANNELS } from '../services/config'
 import { emailRepository } from '../services/database/email'
 import { generateSummary } from '../services/email/summary'
 import { contextSearch } from '../services/email/context-search'
-import { emailService } from '../services/email'
 import { EmailFolder, EmailOptions, SelectedFileData } from '@/types/email'
 import { generateEmail } from '../services/email/generate'
 import { MIME_TYPE_MAP, processAttachmentPaths } from '../services/utils/attachments'
+import { accountService } from '../services'
 
 const MAX_SIZE_MB = 25
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
@@ -31,6 +31,7 @@ export function setupEmailHandlers(): void {
     IPC_CHANNELS.EMAILS.SEND,
     async (
       _,
+      from: string,
       to: string | string[],
       subject: string,
       htmlBody: string,
@@ -44,6 +45,11 @@ export function setupEmailHandlers(): void {
           throw new Error(
             `Total attachment size (${(totalSize / (1024 * 1024)).toFixed(2)} MB) > ${MAX_SIZE_MB}MB.`
           )
+        }
+
+        const emailService = accountService.getAccountServices(from)?.emailService
+        if (!emailService) {
+          throw new Error('Email service not found')
         }
 
         const emailId = await emailService.sendEmailWithAttachments(
@@ -73,14 +79,19 @@ export function setupEmailHandlers(): void {
 
   ipcMain.handle(IPC_CHANNELS.EMAILS.FETCH_PROFILE, async () => {
     try {
-      const profile = await emailService.getProfile()
+      const profile = accountService.getAllAccountIds()
       const unreadEmails = await emailRepository.getUnreadCount()
-      return {
-        success: true,
-        data: {
-          email: profile?.emailAddress,
+
+      const data = profile.map((email) => {
+        return {
+          email,
           unreadEmails
         }
+      })
+
+      return {
+        success: true,
+        data
       }
     } catch (error) {
       console.error('Email categories fetch error:', (error as Error).message)
@@ -116,7 +127,7 @@ export function setupEmailHandlers(): void {
       return { success: true, data: 'No results found' }
     }
 
-    const references = await emailRepository.getThreadsByEmailIds(
+    const references = await emailRepository.getEmailsByIds(
       nearestNeighbors.map((neighbor) => neighbor.emailId)
     )
     _.sender.send(IPC_CHANNELS.EMAILS.SEARCH_REFERENCE, references)

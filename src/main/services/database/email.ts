@@ -40,11 +40,12 @@ export class EmailRepository {
     await this.db.update(emails).set({ unread: false }).where(inArray(emails.id, emailIds))
   }
 
-  async insertEmails(emailsData: Email[]): Promise<void> {
-    if (!emailsData.length) return
+  async insertEmails(emailsData: Email[], linkedAccountId: string): Promise<void> {
+    if (emailsData.length === 0) return
 
     const emailValues = emailsData.map((email) => ({
       ...email,
+      linkedAccountId,
       syncedAt: Date.now()
     }))
 
@@ -97,7 +98,7 @@ export class EmailRepository {
           void this.generateAndStoreEmbeddings(newEmails)
         })
     } catch (error) {
-      console.error('Error inserting emails:', error)
+      console.error('Error inserting emails:', error, emailsData)
     }
   }
 
@@ -295,15 +296,9 @@ export class EmailRepository {
     return results.map(({ body }) => body).filter((body): body is NearestNeighbor => body !== null)
   }
 
-  async getThreadsByEmailIds(emailIds: string[]): Promise<Email[]> {
-    const results = await this.db
-      .select()
-      .from(emails)
-      .innerJoin(threads, eq(emails.threadId, threads.threadId))
-      .where(inArray(emails.id, emailIds))
-      .groupBy(threads.id)
-
-    return results.map((result) => result.threads)
+  async getEmailsByIds(emailIds: string[]): Promise<Email[]> {
+    const results = await this.db.select().from(emails).where(inArray(emails.id, emailIds))
+    return results
   }
 
   async deleteEmails(emailIds: string[]): Promise<void> {

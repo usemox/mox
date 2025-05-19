@@ -1,10 +1,15 @@
 import { BrowserWindow } from 'electron'
 import { google } from 'googleapis'
 import { OAuth2Client, UserRefreshClient } from 'google-auth-library'
-import { EventEmitter } from 'events'
 import secretsManager from '../secrets'
 import { z } from 'zod'
 import { OAUTH_CONFIG_KEYS } from '@/types/config'
+import { ulid } from 'ulid'
+import { DatabaseService } from '../database'
+import { linkedAccounts } from '../database/schema'
+import { eq } from 'drizzle-orm'
+import { accountService } from '..'
+export type AuthClient = UserRefreshClient
 
 const OAUTH_CONFIG = {
   redirectUri: 'http://localhost:8000/oauth2callback',
@@ -35,17 +40,14 @@ export const TokenDataSchema = z.object({
 
 export type TokenData = z.infer<typeof TokenDataSchema>
 
-class AuthService extends EventEmitter {
-  private _oauth2Client: OAuth2Client | null = null
-  private readonly ACCOUNT_NAME = 'oauth-tokens'
+const getTokenKey = (email: string): string => `oauth-token-${email}`
 
-  constructor() {
-    super()
-  }
-
-  async getClient(): Promise<OAuth2Client> {
-    if (this._oauth2Client) return this._oauth2Client
-
+class AuthService {
+  async getClientConfig(): Promise<{
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+  }> {
     try {
       const clientId = await secretsManager.getCredential(OAUTH_CONFIG_KEYS.CLIENT_ID)
       const clientSecret = await secretsManager.getCredential(OAUTH_CONFIG_KEYS.CLIENT_SECRET)
@@ -53,24 +55,26 @@ class AuthService extends EventEmitter {
       if (!clientId || !clientSecret) {
         throw new Error('OAuth credentials not found in secrets manager.')
       }
-
-      this._oauth2Client = new google.auth.OAuth2(clientId, clientSecret, OAUTH_CONFIG.redirectUri)
-      return this._oauth2Client
+      return { clientId, clientSecret, redirectUri: OAUTH_CONFIG.redirectUri }
     } catch (error) {
-      console.error('Failed to initialize AuthService:', error)
+      console.error('Failed to get OAuth client config:', error)
       throw error
     }
   }
 
-  async startAuth(parentWindow: BrowserWindow): Promise<TokenData> {
-    const oauth2Client = await this.getClient()
+  private async createBaseClient(): Promise<OAuth2Client> {
+    const { clientId, clientSecret, redirectUri } = await this.getClientConfig()
+    return new google.auth.OAuth2(clientId, clientSecret, redirectUri)
+  }
+
+  async startAuth(parentWindow: BrowserWindow): Promise<{ accountId: string; email: string }> {
+    const oauth2Client = await this.createBaseClient()
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: OAUTH_CONFIG.scopes,
       prompt: 'consent'
     })
 
-    // Create auth window
     const authWindow = new BrowserWindow({
       parent: parentWindow,
       width: 500,
@@ -78,7 +82,6 @@ class AuthService extends EventEmitter {
       show: true
     })
 
-    // Handle the OAuth2 callback
     return new Promise((resolve, reject) => {
       authWindow.loadURL(authUrl)
 
@@ -89,16 +92,59 @@ class AuthService extends EventEmitter {
             const code = new URL(url).searchParams.get('code')
 
             if (code) {
-              const oauth2Client = await this.getClient()
-              const { tokens } = await oauth2Client.getToken(code)
-              await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(tokens))
+              const client = await this.createBaseClient()
+              const { tokens } = await client.getToken(code)
+              const parsedTokens = TokenDataSchema.parse(tokens)
+
+              if (!parsedTokens.refresh_token) {
+                throw new Error(
+                  'No refresh token received from Google. Ensure prompt=consent is used.'
+                )
+              }
+
+              client.setCredentials(parsedTokens)
+              const people = google.people({ version: 'v1', auth: client })
+              const profile = await people.people.get({
+                resourceName: 'people/me',
+                personFields: 'emailAddresses'
+              })
+
+              const email = profile.data.emailAddresses?.[0]?.value
+              if (!email) {
+                throw new Error('Could not retrieve email address from profile.')
+              }
+
+              const db = DatabaseService.getInstance().getDb()
+              const existingAccount = await db.query.linkedAccounts.findFirst({
+                where: eq(linkedAccounts.emailAddress, email)
+              })
+
+              if (existingAccount) {
+                console.log(`Account ${email} already linked. Updating token in keychain.`)
+                await secretsManager.storeCredential(getTokenKey(email), parsedTokens.refresh_token)
+                authWindow.close()
+                resolve({ accountId: existingAccount.id, email: existingAccount.emailAddress })
+                return
+              }
+
+              await secretsManager.storeCredential(getTokenKey(email), parsedTokens.refresh_token)
+
+              const newAccountId = ulid()
+              await db.insert(linkedAccounts).values({
+                id: newAccountId,
+                emailAddress: email,
+                lastHistoryId: null
+              })
 
               authWindow.close()
-              this.emit(AUTH_EVENTS.AUTHENTICATED)
-              resolve(TokenDataSchema.parse(tokens))
+              resolve({ accountId: newAccountId, email })
             }
           }
         } catch (error) {
+          console.error('Error during OAuth callback:', error)
+          if (!authWindow.isDestroyed()) {
+            authWindow.close()
+          }
           reject(error)
         }
       })
@@ -109,76 +155,129 @@ class AuthService extends EventEmitter {
     })
   }
 
-  async getTokens(): Promise<TokenData | null> {
-    const tokensStr = await secretsManager.getCredential(this.ACCOUNT_NAME)
-    if (!tokensStr) return null
-
-    const tokens: TokenData = JSON.parse(tokensStr)
-
-    if (tokens.expiry_date < Date.now()) {
-      try {
-        const oauth2Client = await this.getClient()
-        oauth2Client.setCredentials(tokens)
-        const { credentials } = await oauth2Client.refreshAccessToken()
-        await secretsManager.storeCredential(this.ACCOUNT_NAME, JSON.stringify(credentials))
-        this.emit(AUTH_EVENTS.AUTHENTICATED)
-        const parsedCredentials = TokenDataSchema.parse(credentials)
-        return parsedCredentials
-      } catch (error) {
-        console.error('Error refreshing token:', error)
-        await this.logout()
-        return null
-      }
-    }
-
-    return tokens
+  private async getRefreshToken(email: string): Promise<string | null> {
+    return secretsManager.getCredential(getTokenKey(email))
   }
 
   async checkInitialAuthStatus(): Promise<void> {
-    console.debug('Checking initial authentication status...')
-    const tokens = await this.getTokens()
-    if (tokens) {
-      console.debug('Existing authentication found.')
-      this.emit(AUTH_EVENTS.AUTHENTICATED)
+    const accounts = await this.getLinkedAccounts()
+    console.log('Checking initial auth status for accounts:', accounts)
+    if (accounts.length > 0) {
+      await accountService.loadPersistedAccounts()
     } else {
       console.debug('No existing authentication found.')
     }
   }
 
   async logout(): Promise<void> {
-    await secretsManager.deleteCredential(this.ACCOUNT_NAME)
-    this.emit(AUTH_EVENTS.LOGGED_OUT)
+    console.info('Logging out all accounts...')
+    const db = DatabaseService.getInstance().getDb()
+    const accounts = await this.getLinkedAccounts()
+    for (const account of accounts) {
+      try {
+        const client = await this.getAuthenticatedClient(account.emailAddress)
+        await client.revokeCredentials()
+        console.log(`Revoked token for ${account.emailAddress}`)
+      } catch (err) {
+        console.warn(`Failed to revoke token for ${account.emailAddress}:`, err)
+      }
+
+      try {
+        await secretsManager.deleteCredential(getTokenKey(account.emailAddress))
+      } catch (err) {
+        console.error(`Failed to delete credential for ${account.emailAddress}:`, err)
+      }
+    }
+    await db.delete(linkedAccounts)
+    console.info('Cleared linked accounts from database.')
   }
 
   async isAuthenticated(): Promise<boolean> {
-    const tokens = await secretsManager.getCredential(this.ACCOUNT_NAME)
-    return !!tokens
+    const accounts = await this.getLinkedAccounts()
+    return accounts.length > 0
   }
 
-  async getAuthenticatedClient(): Promise<OAuth2Client> {
-    const tokens = await this.getTokens()
+  async getAuthenticatedClient(email: string): Promise<OAuth2Client> {
+    const refreshToken = await this.getRefreshToken(email)
 
-    if (!tokens) {
-      throw new Error('Not authenticated')
+    if (!refreshToken) {
+      throw new Error(`Not authenticated or refresh token missing for account: ${email}`)
     }
 
-    const oauth2Client = await this.getClient()
-    oauth2Client.setCredentials(tokens)
-    return oauth2Client
+    const client = await this.createBaseClient()
+    client.setCredentials({ refresh_token: refreshToken })
+
+    try {
+      const accessToken = await client.getAccessToken()
+      if (!accessToken.token) {
+        throw new Error(`Failed to obtain access token for ${email}`)
+      }
+    } catch (error) {
+      console.error(`Error refreshing access token for ${email}:`, error)
+      await this.removeAccount(email)
+      throw new Error(`Failed to refresh token for ${email}. Account may need re-authentication.`)
+    }
+
+    return client
   }
 
-  async getRefreshClient(): Promise<UserRefreshClient> {
-    const { _clientId, _clientSecret, credentials } = await this.getAuthenticatedClient()
-
-    if (typeof credentials.refresh_token !== 'string') {
-      throw new Error('No refresh token available to use')
+  async getRefreshClient(email: string): Promise<UserRefreshClient> {
+    const refreshToken = await this.getRefreshToken(email)
+    if (!refreshToken) {
+      throw new Error(`No refresh token available for account: ${email}`)
     }
+    const { clientId, clientSecret } = await this.getClientConfig()
 
     return new UserRefreshClient({
-      clientId: _clientId,
-      clientSecret: _clientSecret,
-      refreshToken: credentials.refresh_token ?? undefined
+      clientId: clientId,
+      clientSecret: clientSecret,
+      refreshToken: refreshToken
     })
+  }
+
+  async getLinkedAccounts(): Promise<
+    { id: string; emailAddress: string; lastHistoryId: string | null }[]
+  > {
+    try {
+      const db = DatabaseService.getInstance().getDb()
+      return await db.query.linkedAccounts.findMany()
+    } catch (error) {
+      console.error('Failed to retrieve linked accounts:', error)
+      return []
+    }
+  }
+
+  async removeAccount(email: string): Promise<void> {
+    console.info(`Removing account: ${email}...`)
+    try {
+      const client = await this.getAuthenticatedClient(email)
+      await client.revokeCredentials()
+      console.info(`Revoked token for ${email}`)
+    } catch (err) {
+      console.error(
+        `Failed to revoke token during removal for ${email} (might be already invalid):`,
+        err
+      )
+    }
+
+    try {
+      await secretsManager.deleteCredential(getTokenKey(email))
+    } catch (err) {
+      console.error(`Failed to delete credential for ${email}:`, err)
+    }
+
+    try {
+      const db = DatabaseService.getInstance().getDb()
+      const result = await db.delete(linkedAccounts).where(eq(linkedAccounts.emailAddress, email))
+      if (result.rowsAffected === 0) {
+        console.warn(`No account found in database for email: ${email}`)
+      } else {
+        console.info(`Removed account ${email} from database.`)
+      }
+    } catch (error) {
+      console.error(`Failed to remove account ${email} from database:`, error)
+      throw error
+    }
   }
 }
 

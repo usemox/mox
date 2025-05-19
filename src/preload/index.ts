@@ -52,7 +52,7 @@ export interface ElectronApi {
       onChunk: (chunk: string) => void,
       onDone: () => void
     ) => Promise<{ success: boolean; error?: string; data?: string }>
-    getProfile: () => Promise<{ success: boolean; error?: string; data?: Profile }>
+    getProfile: () => Promise<{ success: boolean; error?: string; data?: Profile[] }>
     search: (
       query: string,
       onChunk: (chunk: string) => void,
