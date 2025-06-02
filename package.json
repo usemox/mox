@@ -90,7 +90,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.0",
-    "drizzle-orm": "^0.43.1",
+    "drizzle-orm": "^0.44.1",
     "electron": "^35.2.0",
     "electron-builder": "^26.0.12",
     "electron-devtools-installer": "^4.0.0",
