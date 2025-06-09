@@ -41,7 +41,7 @@
     "cmdk": "^1.1.1",
     "electron-updater": "^6.3.9",
     "google-auth-library": "^9.15.1",
-    "googleapis": "^148.0.0",
+    "googleapis": "^150.0.1",
     "keytar": "^7.9.0",
     "posthog-js": "^1.241.1",
     "tw-animate-css": "^1.2.5",
